@@ -11,7 +11,7 @@ select openapi_object(
   ),
   paths := '{}',
   components := openapi_components_object(
-    schemas := postgrest_tables_to_openapi_schema_components('{api}')
+    schemas := postgrest_tables_to_openapi_schema_components('{api}') || postgrest_composite_types_to_openapi_schema_components('{api}')
   )
 );
 $$;

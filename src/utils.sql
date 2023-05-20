@@ -12,4 +12,3 @@ select case when type like any(array['character', 'character varying', 'text']) 
             when type like 'jsonb' then 'object'
             else 'string' end;
 $$;
-

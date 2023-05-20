@@ -53,36 +53,6 @@ select jsonb_build_object(
   );
 $$;
 
-
-create or replace function openapi_components_object(
-  schemas jsonb default null,
-  responses jsonb default null,
-  parameters jsonb default null,
-  examples jsonb default null,
-  requestBodies jsonb default null,
-  headers jsonb default null,
-  securitySchemes jsonb default null,
-  links jsonb default null,
-  callbacks jsonb default null,
-  pathItems jsonb default null
-)
-returns jsonb language sql as
-$$
-select json_build_object(
-  'schemas', schemas,
-  'responses', responses,
-  'parameters', parameters,
-  'examples', examples,
-  'requestBodies', requestBodies,
-  'headers', headers,
-  'securitySchemes', securitySchemes,
-  'links', links,
-  'callbacks', callbacks,
-  'pathItems', pathItems,
-);
-$$;
-
-
 create or replace function openapi_components_object(
   schemas jsonb default null,
   responses jsonb default null,
@@ -110,7 +80,6 @@ select json_build_object(
  'pathItems', pathItems
 );
 $$;
-
 
 create or replace function openapi_schema_object(
   title text default null,
@@ -187,4 +156,12 @@ $$
     'example', example,
     'deprecated', deprecated
   )
+$$;
+
+create or replace function openapi_build_ref(ref text)
+returns jsonb language sql as
+$$
+select json_build_object(
+  '$ref', '#/components/schemas/' || ref
+);
 $$;
