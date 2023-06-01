@@ -1,0 +1,222 @@
+-- detects tables as objects
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'type');
+ jsonb_pretty 
+--------------
+ "object"
+(1 row)
+
+-- detects columns with enum types as an enum property
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'properties'->'size');
+        jsonb_pretty        
+----------------------------
+ {                         +
+     "enum": [             +
+         "XS",             +
+         "S",              +
+         "M",              +
+         "L",              +
+         "XL"              +
+     ],                    +
+     "type": "string",     +
+     "format": "types.size"+
+ }
+(1 row)
+
+-- references a composite type column from a table to a component definition
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'properties'->'attr');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/schemas/types.attribute"+
+ }
+(1 row)
+
+-- identifies the required columns
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'required');
+    jsonb_pretty    
+--------------------
+ [                 +
+     "name",       +
+     "code",       +
+     "description",+
+     "id"          +
+ ]
+(1 row)
+
+-- detects comments done on a table and shows it as description
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'description');
+                              jsonb_pretty                               
+-------------------------------------------------------------------------
+ "Products summary\n\nProducts description\nthat spans\nmultiple lines."
+(1 row)
+
+-- detects comments done on a table column and shows it as description
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'properties'->'id'->'description');
+       jsonb_pretty        
+---------------------------
+ "identifier of a product"
+(1 row)
+
+-- maps sql types to OpenAPI types correctly
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'openapi_types');
+                jsonb_pretty                 
+---------------------------------------------
+ {                                          +
+     "type": "object",                      +
+     "properties": {                        +
+         "a_json": {                        +
+             "type": "object",              +
+             "format": "json"               +
+         },                                 +
+         "a_real": {                        +
+             "type": "number",              +
+             "format": "real"               +
+         },                                 +
+         "a_text": {                        +
+             "type": "string",              +
+             "format": "text"               +
+         },                                 +
+         "a_jsonb": {                       +
+             "type": "object",              +
+             "format": "jsonb"              +
+         },                                 +
+         "a_bigint": {                      +
+             "type": "integer",             +
+             "format": "bigint"             +
+         },                                 +
+         "a_boolean": {                     +
+             "type": "boolean",             +
+             "format": "boolean"            +
+         },                                 +
+         "a_int_arr": {                     +
+             "type": "array",               +
+             "format": "integer[]"          +
+         },                                 +
+         "a_integer": {                     +
+             "type": "integer",             +
+             "format": "integer"            +
+         },                                 +
+         "a_numeric": {                     +
+             "type": "number",              +
+             "format": "numeric"            +
+         },                                 +
+         "a_bool_arr": {                    +
+             "type": "array",               +
+             "format": "boolean[]"          +
+         },                                 +
+         "a_char_arr": {                    +
+             "type": "array",               +
+             "format": "character[]"        +
+         },                                 +
+         "a_json_arr": {                    +
+             "type": "array",               +
+             "format": "json[]"             +
+         },                                 +
+         "a_smallint": {                    +
+             "type": "integer",             +
+             "format": "smallint"           +
+         },                                 +
+         "a_text_arr": {                    +
+             "type": "array",               +
+             "format": "text[]"             +
+         },                                 +
+         "a_character": {                   +
+             "type": "string",              +
+             "format": "character",         +
+             "maxLength": 1                 +
+         },                                 +
+         "a_jsonb_arr": {                   +
+             "type": "array",               +
+             "format": "jsonb[]"            +
+         },                                 +
+         "a_bigint_arr": {                  +
+             "type": "array",               +
+             "format": "bigint[]"           +
+         },                                 +
+         "a_numeric_arr": {                 +
+             "type": "array",               +
+             "format": "numeric[]"          +
+         },                                 +
+         "a_varchar_arr": {                 +
+             "type": "array",               +
+             "format": "character varying[]"+
+         },                                 +
+         "a_double_precision": {            +
+             "type": "number",              +
+             "format": "double precision"   +
+         },                                 +
+         "a_character_varying": {           +
+             "type": "string",              +
+             "format": "character varying"  +
+         }                                  +
+     }                                      +
+ }
+(1 row)
+
+-- does not show tables outside the exposed schema
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'secret_table');
+ jsonb_pretty 
+--------------
+ 
+(1 row)
+
+-- detects composite types as objects
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'type');
+ jsonb_pretty 
+--------------
+ "object"
+(1 row)
+
+-- references a composite type column from another composite type to a component definition
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'dim');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/schemas/types.dimension"+
+ }
+(1 row)
+
+-- detects a composite type inside another composite type
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.dimension');
+          jsonb_pretty           
+---------------------------------
+ {                              +
+     "type": "object",          +
+     "properties": {            +
+         "hei": {               +
+             "type": "number",  +
+             "format": "numeric"+
+         },                     +
+         "len": {               +
+             "type": "number",  +
+             "format": "numeric"+
+         },                     +
+         "wid": {               +
+             "type": "number",  +
+             "format": "numeric"+
+         }                      +
+     }                          +
+ }
+(1 row)
+
+-- does not show a composite type that is not used by an exposed table
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.hiddentype');
+ jsonb_pretty 
+--------------
+ 
+(1 row)
+
+-- detects comments done on a composite type and shows it as description
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'description');
+                               jsonb_pretty                                
+---------------------------------------------------------------------------
+ "Attribute summary\n\nAttribute description\nthat spans\nmultiple lines."
+(1 row)
+
+-- detects comments done on a composite type column and shows it as description
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'other'->'description');
+              jsonb_pretty               
+-----------------------------------------
+ "other information about the attribute"
+(1 row)
+

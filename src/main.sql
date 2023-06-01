@@ -1,6 +1,6 @@
 -- Default PostgREST OpenAPI Specification
 
-create or replace function get_postgrest_openapi_spec()
+create or replace function get_postgrest_openapi_spec(schemas text[])
 returns jsonb language sql as
 $$
 select openapi_object(
@@ -11,7 +11,7 @@ select openapi_object(
   ),
   paths := '{}',
   components := openapi_components_object(
-    schemas := postgrest_tables_to_openapi_schema_components('{api}') || postgrest_composite_types_to_openapi_schema_components('{api}')
+    schemas := postgrest_tables_to_openapi_schema_components(schemas) || postgrest_composite_types_to_openapi_schema_components(schemas)
   )
 );
 $$;
