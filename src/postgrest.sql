@@ -32,6 +32,7 @@ WITH
         END AS column_default,
       not (a.attnotnull OR t.typtype = 'd' AND t.typnotnull) AS is_nullable,
       -- TODO: This does not include composite types in arrays, maybe use pg_type.typarray in a way to get the corresponding oid for the array type
+      t.typarray = 0 AS is_array,
       t.typtype = 'c' AS is_composite,
       t.typrelid AS composite_oid,
       CASE
@@ -87,18 +88,20 @@ WITH
       array_agg(info.column_name) filter (where not info.is_nullable) AS required_cols,
       jsonb_object_agg(
         info.column_name,
-        case when info.is_composite then
-          openapi_build_ref(info.data_type)
-        else
-          openapi_schema_object(
-            description :=  info.description,
-            type := pgtype_to_oastype(info.data_type),
-            format := info.data_type::text,
-            maxlength := info.character_maximum_length,
-            -- "default" :=  to_jsonb(info.column_default),
-            enum := to_jsonb(enum_info.vals)
-          )
-        end order by info.position
+        openapi_build_type(
+          case when info.is_composite then
+            openapi_build_ref(info.data_type)
+          else
+            openapi_schema_object(
+              description :=  info.description,
+              type := pgtype_to_oastype(info.data_type),
+              format := info.data_type::text,
+              maxlength := info.character_maximum_length,
+              -- "default" :=  to_jsonb(info.column_default),
+              enum := to_jsonb(enum_info.vals)
+            )
+          end,
+        is_array) order by info.position
       ) as columns
     FROM columns info
     LEFT OUTER JOIN (
