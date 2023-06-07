@@ -2,6 +2,20 @@
 
 SQL functions to build the OpenAPI output of a PostgREST instance.
 
+## Development
+
+- Execute the script to build the PostgreSQL extension file:
+
+  ```
+  sh scripts/build.sh
+  ```
+
+- Run tests using [Nix](https://nixos.org/download.html):
+
+  ```
+  nix-shell --run "with-pg-15 make installcheck"
+  ```
+
 ## References
 
 - [OpenAPI 3 Specification Documentation](https://spec.openapis.org/oas/v3.1.0): The official documentation of the spec.
