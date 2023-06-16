@@ -165,17 +165,3 @@ select json_build_object(
   '$ref', '#/components/schemas/' || ref
 );
 $$;
-
-create or replace function openapi_build_type(property_type jsonb, is_array boolean)
-returns jsonb language sql as
-$$
-  select
-    case
-      when is_array
-      then openapi_schema_object(
-        type := 'array',
-        items := property_type
-      )
-      else property_type
-    end
-$$;

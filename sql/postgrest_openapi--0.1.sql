@@ -212,7 +212,7 @@ WITH
         ELSE pg_get_expr(ad.adbin, ad.adrelid)::text
         END AS column_default,
       not (a.attnotnull OR t.typtype = 'd' AND t.typnotnull) AS is_nullable,
-      -- TODO: This does not include composite types in arrays, maybe use pg_type.typarray in a way to get the corresponding oid for the array type
+      t.typarray = 0 AS is_array,
       t.typtype = 'c' AS is_composite,
       t.typrelid AS composite_oid,
       CASE
@@ -233,7 +233,22 @@ WITH
           information_schema._pg_truetypmod(a.*, t.*)
         )::integer AS character_maximum_length,
       COALESCE(bt.typname, t.typname)::name AS udt_name,
-      a.attnum::integer AS position
+      a.attnum::integer AS position,
+      CASE
+        WHEN t_arr.typtype = 'd' THEN
+          CASE
+            WHEN nbt_arr.nspname = 'pg_catalog'::name THEN format_type(t_arr.typbasetype, NULL::integer)
+            ELSE format_type(t_arr.oid, t_arr.typtypmod)
+            END
+        ELSE
+          CASE
+            WHEN nt_arr.nspname = 'pg_catalog'::name THEN format_type(t_arr.oid, NULL::integer)
+            ELSE format_type(t_arr.oid, t_arr.typtypmod)
+            END
+        END::text AS item_data_type,
+      t_arr.typtype = 'c' AS item_is_composite,
+      t_arr.typrelid AS item_composite_oid,
+      t_arr.oid AS item_data_type_id
     FROM pg_attribute a
       LEFT JOIN pg_description AS d
         ON d.objoid = a.attrelid and d.objsubid = a.attnum
@@ -245,6 +260,10 @@ WITH
         ON a.atttypid = t.oid
       LEFT JOIN (pg_type bt JOIN pg_namespace nbt ON bt.typnamespace = nbt.oid)
         ON t.typtype = 'd' AND t.typbasetype = bt.oid
+      LEFT JOIN (pg_type t_arr JOIN pg_namespace nt_arr ON t_arr.typnamespace = nt_arr.oid)
+        ON t.oid = t_arr.typarray
+      LEFT JOIN (pg_type bt_arr JOIN pg_namespace nbt_arr ON bt_arr.typnamespace = nbt_arr.oid)
+        ON t_arr.typtype = 'd' AND t_arr.typbasetype = bt_arr.oid
       LEFT JOIN (pg_collation co JOIN pg_namespace nco ON co.collnamespace = nco.oid)
         ON a.attcollation = co.oid AND (nco.nspname <> 'pg_catalog'::name OR co.collname <> 'default'::name)
       LEFT JOIN pg_depend dep
@@ -260,26 +279,38 @@ WITH
       AND c.relkind in ('r', 'v', 'f', 'm', 'p')
       AND nc.nspname = ANY(schemas)
   ),
-  columns_agg AS (
+   columns_agg AS (
     SELECT DISTINCT
       info.table_schema AS table_schema,
       info.table_name AS table_name,
-      array_agg(info.composite_oid) filter (where info.is_composite) AS composite_cols,
+      array_agg(coalesce(info.composite_oid, info.item_composite_oid)) filter (where info.is_composite or info.item_is_composite) AS composite_cols,
       array_agg(info.column_name) filter (where not info.is_nullable) AS required_cols,
       jsonb_object_agg(
         info.column_name,
-        case when info.is_composite then
-          openapi_build_ref(info.data_type)
-        else
-          openapi_schema_object(
-            description :=  info.description,
-            type := pgtype_to_oastype(info.data_type),
-            format := info.data_type::text,
-            maxlength := info.character_maximum_length,
-            -- "default" :=  to_jsonb(info.column_default),
-            enum := to_jsonb(enum_info.vals)
-          )
-        end order by info.position
+          case when info.is_composite then
+            openapi_build_ref(info.data_type)
+          else
+            openapi_schema_object(
+              description :=  info.description,
+              type := pgtype_to_oastype(info.data_type),
+              format := info.data_type::text,
+              maxlength := info.character_maximum_length,
+              -- "default" :=  to_jsonb(info.column_default),
+              enum := to_jsonb(enum_info.vals),
+              items :=
+                case
+                when not info.is_array then
+                  null
+                when info.item_is_composite then
+                  openapi_build_ref(info.item_data_type)
+                else
+                  openapi_schema_object(
+                    type := pgtype_to_oastype(info.item_data_type),
+                    format := info.item_data_type::text
+                  )
+                end
+            )
+          end order by info.position
       ) as columns
     FROM columns info
     LEFT OUTER JOIN (
