@@ -294,7 +294,7 @@ WITH
       c.relname::name AS comptype_name,
       a.attname::name AS column_name,
       d.description AS description,
-      -- TODO: This does not include composite types in arrays, maybe use pg_type.typarray in a way to get the corresponding oid for the array type
+      t.typarray = 0 AS is_array,
       t.typtype = 'c' AS is_composite,
       CASE
         WHEN t.typtype = 'd' THEN
@@ -315,6 +315,21 @@ WITH
         )::integer AS character_maximum_length,
       COALESCE(bt.typname, t.typname)::name AS udt_name,
       a.attnum::integer AS position,
+      CASE
+        WHEN t_arr.typtype = 'd' THEN
+          CASE
+            WHEN nbt_arr.nspname = 'pg_catalog'::name THEN format_type(t_arr.typbasetype, NULL::integer)
+            ELSE format_type(t_arr.oid, t_arr.typtypmod)
+            END
+        ELSE
+          CASE
+            WHEN nt_arr.nspname = 'pg_catalog'::name THEN format_type(t_arr.oid, NULL::integer)
+            ELSE format_type(t_arr.oid, t_arr.typtypmod)
+            END
+        END::text AS item_data_type,
+      t_arr.typtype = 'c' AS item_is_composite,
+      t_arr.typrelid AS item_comptype_id,
+      t_arr.oid AS item_data_type_id,
       -- Used for the recursive query
       a.attrelid AS comptype_id,
       t.typrelid AS column_comptype_id
@@ -327,6 +342,10 @@ WITH
         ON a.atttypid = t.oid
       LEFT JOIN (pg_type bt JOIN pg_namespace nbt ON bt.typnamespace = nbt.oid)
         ON t.typtype = 'd' AND t.typbasetype = bt.oid
+      LEFT JOIN (pg_type t_arr JOIN pg_namespace nt_arr ON t_arr.typnamespace = nt_arr.oid)
+        ON t.oid = t_arr.typarray
+      LEFT JOIN (pg_type bt_arr JOIN pg_namespace nbt_arr ON bt_arr.typnamespace = nbt_arr.oid)
+        ON t_arr.typtype = 'd' AND t_arr.typbasetype = bt_arr.oid
       LEFT JOIN (pg_collation co JOIN pg_namespace nco ON co.collnamespace = nco.oid)
         ON a.attcollation = co.oid AND (nco.nspname <> 'pg_catalog'::name OR co.collname <> 'default'::name)
       LEFT JOIN pg_depend dep
@@ -349,6 +368,7 @@ WITH
         comptype_name,
         column_name,
         description,
+        is_array,
         is_composite,
         data_type,
         data_type_id,
@@ -356,7 +376,10 @@ WITH
         udt_name,
         position,
         comptype_id,
-        column_comptype_id
+        column_comptype_id,
+        item_data_type,
+        item_is_composite,
+        item_comptype_id
       FROM columns
       -- List only the the composite types that are used by tables in the exposed schema
       WHERE comptype_id in (select unnest(composite_cols) from postgrest_get_all_tables(schemas))
@@ -366,6 +389,7 @@ WITH
         c.comptype_name,
         c.column_name,
         c.description,
+        c.is_array,
         c.is_composite,
         c.data_type,
         c.data_type_id,
@@ -373,9 +397,12 @@ WITH
         c.udt_name,
         c.position,
         c.comptype_id,
-        c.column_comptype_id
+        c.column_comptype_id,
+        c.item_data_type,
+        c.item_is_composite,
+        c.item_comptype_id
       FROM columns c
-        JOIN recurse r on c.comptype_id = r.column_comptype_id
+        JOIN recurse r on c.comptype_id = coalesce(r.item_comptype_id, r.column_comptype_id)
     )
     SELECT * FROM recurse
   ),
@@ -383,21 +410,33 @@ WITH
     SELECT DISTINCT
       info.comptype_schema AS comptype_schema,
       info.comptype_name AS comptype_name,
-      array_agg(info.data_type_id) filter (where info.is_composite) AS composite_cols,
+      array_agg(coalesce(info.data_type_id, info.item_comptype_id)) filter (where info.is_composite or info.item_is_composite) AS composite_cols,
       jsonb_object_agg(
           info.column_name,
           case when info.is_composite then
-                 openapi_build_ref(info.data_type)
-               else
-                 openapi_schema_object(
-                     description :=  info.description,
-                     type := pgtype_to_oastype(info.data_type),
-                     format := info.data_type::text,
-                     maxlength := info.character_maximum_length,
-                   -- "default" :=  to_jsonb(info.column_default),
-                     enum := to_jsonb(enum_info.vals)
-                   )
-            end order by info.position
+            openapi_build_ref(info.data_type)
+          else
+            openapi_schema_object(
+              description :=  info.description,
+              type := pgtype_to_oastype(info.data_type),
+              format := info.data_type::text,
+              maxlength := info.character_maximum_length,
+              -- "default" :=  to_jsonb(info.column_default),
+              enum := to_jsonb(enum_info.vals),
+              items :=
+                case
+                when not info.is_array then
+                  null
+                when info.item_is_composite then
+                  openapi_build_ref(info.item_data_type)
+                else
+                  openapi_schema_object(
+                    type := pgtype_to_oastype(info.item_data_type),
+                    format := info.item_data_type::text
+                  )
+                end
+            )
+          end order by info.position
         ) as columns
     FROM all_comptype_columns info
       LEFT OUTER JOIN (
