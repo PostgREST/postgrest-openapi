@@ -284,7 +284,7 @@ WITH
       info.table_schema AS table_schema,
       info.table_name AS table_name,
       array_agg(coalesce(info.composite_oid, info.item_composite_oid)) filter (where info.is_composite or info.item_is_composite) AS composite_cols,
-      array_agg(info.column_name) filter (where not info.is_nullable) AS required_cols,
+      array_agg(info.column_name order by info.position) filter (where not info.is_nullable) AS required_cols,
       jsonb_object_agg(
         info.column_name,
           case when info.is_composite then

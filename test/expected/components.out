@@ -33,13 +33,13 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas
 
 -- identifies the required columns
 select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'required');
-    jsonb_pretty    
---------------------
- [                 +
-     "name",       +
-     "code",       +
-     "description",+
-     "id"          +
+   jsonb_pretty    
+-------------------
+ [                +
+     "id",        +
+     "code",      +
+     "name",      +
+     "description"+
  ]
 (1 row)
 
