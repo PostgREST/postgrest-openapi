@@ -6,7 +6,8 @@ drop schema if exists types, test cascade;
 create schema types;
 
 create type types.dimension as (len numeric, wid numeric, hei numeric);
-create type types.attribute as (dim types.dimension, other text);
+create type types.color as (hex char(6), def text);
+create type types.attribute as (dim types.dimension, colors types.color[], other text);
 create type types.hiddentype as (val text);
 create type types.size as enum('XS', 'S', 'M', 'L', 'XL');
 
