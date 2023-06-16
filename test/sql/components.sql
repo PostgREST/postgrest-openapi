@@ -31,6 +31,9 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas
 -- detects a composite type inside another composite type
 select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.dimension');
 
+-- detects an array composite type inside another composite type
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.color');
+
 -- does not show a composite type that is not used by an exposed table
 select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.hiddentype');
 
@@ -39,3 +42,6 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas
 
 -- detects comments done on a composite type column and shows it as description
 select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'other'->'description');
+
+-- references a composite type column from an array composite type inside the items property
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'colors'->'items');

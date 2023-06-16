@@ -235,6 +235,26 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas
  }
 (1 row)
 
+-- detects an array composite type inside another composite type
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.color');
+            jsonb_pretty            
+------------------------------------
+ {                                 +
+     "type": "object",             +
+     "properties": {               +
+         "def": {                  +
+             "type": "string",     +
+             "format": "text"      +
+         },                        +
+         "hex": {                  +
+             "type": "string",     +
+             "format": "character",+
+             "maxLength": 6        +
+         }                         +
+     }                             +
+ }
+(1 row)
+
 -- does not show a composite type that is not used by an exposed table
 select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.hiddentype');
  jsonb_pretty 
@@ -254,5 +274,14 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas
               jsonb_pretty               
 -----------------------------------------
  "other information about the attribute"
+(1 row)
+
+-- references a composite type column from an array composite type inside the items property
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'colors'->'items');
+                  jsonb_pretty                  
+------------------------------------------------
+ {                                             +
+     "$ref": "#/components/schemas/types.color"+
+ }
 (1 row)
 
