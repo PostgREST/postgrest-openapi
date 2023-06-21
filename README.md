@@ -2,6 +2,20 @@
 
 SQL functions to build the OpenAPI output of a PostgREST instance.
 
+## Roadmap
+
+- The first step in the roadmap is to migrate the OpenAPI spec from the PostgREST core repository (version 2.0 to 3.1):
+  - [] Info object
+  - [] Server object (replaces host, basePath and schemes from OAS 2.0)
+  - [] Components object
+    - [x] Schemas (definitions in OAS 2.0)
+    - [] Security scheme (security definitions in OAS 2.0)
+    - [] Parameters
+    - [] Responses (produces in OAS 2.0 - simple implementation)
+    - [] Request bodies (consumes in OAS 2.0 - simple implementation)
+  - [] Paths object
+- The next step is to fix the issues tagged with `OpenAPI` in the core repo.
+
 ## Development
 
 - Execute the script to build the PostgreSQL extension file:
