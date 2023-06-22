@@ -1,6 +1,9 @@
 -- Default PostgREST OpenAPI Specification
 
-create or replace function get_postgrest_openapi_spec(schemas text[])
+create or replace function get_postgrest_openapi_spec(
+  schemas text[],
+  server_proxy_uri text default 'http://0.0.0.0:3000'
+)
 returns jsonb language sql as
 $$
 select openapi_object(
@@ -8,6 +11,11 @@ select openapi_object(
   info := openapi_info_object(
     title := 'PostgREST API',
     version := '11.0.1 (4197d2f)'
+  ),
+  servers := jsonb_build_array(
+    openapi_server_object(
+      url := server_proxy_uri
+    )
   ),
   paths := '{}',
   components := openapi_components_object(
