@@ -1,0 +1,15 @@
+-- shows the first line of the comment on the schema as title
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'info'->'title');
+  jsonb_pretty  
+----------------
+ "My API title"
+(1 row)
+
+-- shows the second line of the comment on the schema as description
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'info'->'description');
+                   jsonb_pretty                   
+--------------------------------------------------
+ "My API description\nthat spans\nmultiple lines"
+(1 row)
+
+-- TODO: tests for versions

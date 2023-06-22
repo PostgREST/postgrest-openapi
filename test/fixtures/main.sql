@@ -23,6 +23,13 @@ comment on column types.attribute.other is 'other information about the attribut
 -- Schema and tables for testing
 create schema test;
 
+comment on schema test is
+$$My API title
+
+My API description
+that spans
+multiple lines$$;
+
 create table test.products (
   id int generated always as identity,
   code char(6) not null unique,

@@ -479,3 +479,33 @@ FROM (
   FROM postgrest_get_all_composite_types(schemas)
 ) x;
 $$;
+
+create or replace function postgrest_get_schema_description(schema text)
+returns table (
+  title text,
+  description text
+) language sql as
+$$
+select
+  substr(sd.schema_desc, 0, break_position) as title,
+  trim(leading from substr(sd.schema_desc, break_position), '
+') as description
+from (
+  select
+    description as schema_desc,
+    strpos(description, '
+') as break_position
+  from
+    pg_namespace n
+      left join pg_description d on d.objoid = n.oid
+  where
+      n.nspname = schema
+) sd;
+$$;
+
+-- TODO: placeholder, verify if it can be get using https://github.com/PostgREST/postgrest/issues/2647
+create or replace function postgrest_get_version()
+returns text language sql as
+$$
+select '11.0.1 (4197d2f)'
+$$;
