@@ -7,30 +7,45 @@ SQL functions to build the OpenAPI output of a PostgREST instance.
 - The first step in the roadmap is to migrate the OpenAPI spec from the PostgREST core repository (version 2.0 to 3.1):
   - [x] Info object
   - [x] Server object (replaces host, basePath and schemes from OAS 2.0)
-  - [] Components object
+  - [ ] Components object
     - [x] Schemas (definitions in OAS 2.0)
     - [ ] Security scheme (security definitions in OAS 2.0)
     - [ ] Parameters
     - [ ] Responses (produces in OAS 2.0 - simple implementation)
     - [ ] Request bodies (consumes in OAS 2.0 - simple implementation)
-  - [] Paths object
+  - [ ] Paths object
 - The next step is to fix the issues tagged with `OpenAPI` in the core repo.
 
 ## Installation
 
+```bash
+make && sudo make install
+```
+
 ## Development
 
-- Execute the script to build the PostgreSQL extension file:
+For testing on your local database:
 
-  ```
-  sh scripts/build.sh
-  ```
+```bash
+# this will load fixtures in a contrib_regression db on your local postgres
+make fixtures
 
-- Run tests using [Nix](https://nixos.org/download.html):
+# run the tests, they can be run repeatedly
+make installcheck
 
-  ```
-  nix-shell --run "with-pg-15 make installcheck"
-  ```
+# to clean the fixtures you can use
+make clean
+```
+
+For an isolated and reproducible enviroment you can use [Nix](https://nixos.org/download.html).
+
+```bash
+# to run tests
+nix-shell --run "with-pg-15 make installcheck"
+
+# to interact with the local database with fixtures loaded
+nix-shell --run "with-pg-15 psql contrib_regression"
+```
 
 ## References
 

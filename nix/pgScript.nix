@@ -20,9 +20,7 @@ let
 
     pg_ctl start -o "$default_options" -o "${options}"
 
-    createdb contrib_regression
-
-    psql -v ON_ERROR_STOP=1 -f test/fixtures/main.sql -d contrib_regression
+    make fixtures
 
     "$@"
   '';

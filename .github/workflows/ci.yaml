@@ -1,6 +1,6 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   test:
@@ -15,5 +15,7 @@ jobs:
       - uses: cachix/install-nix-action@v18
         with:
           nix_path: nixpkgs=channel:nixos-unstable
-      - name: Run tests pg_${{ matrix.postgres-version }}
+      - name: Run tests
         run: nix-shell --run "with-pg-${{ matrix.pg-version }} make installcheck"
+      - if: ${{ failure() }}
+        run: cat regression.diffs
