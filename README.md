@@ -45,6 +45,9 @@ nix-shell --run "with-pg-15 make installcheck"
 
 # to interact with the local database with fixtures loaded
 nix-shell --run "with-pg-15 psql contrib_regression"
+
+# you can choose the pg version
+nix-shell --run "with-pg-13 make installcheck"
 ```
 
 ## References

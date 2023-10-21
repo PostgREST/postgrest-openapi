@@ -7,7 +7,7 @@ mkShell {
   buildInputs =
     let
       extensionName = "postgrest_openapi";
-      supportedPgVersions = [ postgresql_15 ];
+      supportedPgVersions = [ postgresql_15 postgresql_14 postgresql_13 postgresql_12 postgresql_11 ];
       pgWExtension = { postgresql }: postgresql.withPackages (p: [ (callPackage ./nix/pgExtension.nix { inherit postgresql extensionName; }) ]);
       extAll = map (x: callPackage ./nix/pgScript.nix { postgresql = pgWExtension { postgresql = x;}; }) supportedPgVersions;
     in
