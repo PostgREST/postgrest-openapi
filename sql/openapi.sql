@@ -43,7 +43,7 @@ select jsonb_build_object(
   'variables', variables
 )
 $$;
-  
+
 create or replace function openapi_info_object(
   title text,
   version text,

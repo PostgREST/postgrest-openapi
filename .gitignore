@@ -2,3 +2,8 @@ regression.diffs
 regression.out
 results/
 .history
+*.o
+*.bc
+*.control
+*.so
+sql/postgrest_openapi.sql
