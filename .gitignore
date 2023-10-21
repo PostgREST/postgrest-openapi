@@ -7,3 +7,4 @@ results/
 *.control
 *.so
 sql/postgrest_openapi.sql
+test/fixtures_ran

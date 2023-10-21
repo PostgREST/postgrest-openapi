@@ -1,6 +1,6 @@
 create extension postgrest_openapi;
 
-drop schema if exists types, test cascade;
+drop schema if exists types, test, private cascade;
 
 -- Custom types
 create schema types;
