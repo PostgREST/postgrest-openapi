@@ -2,8 +2,10 @@
 FROM postgres:16-alpine AS postgres-openapi-base
 
 
-ENV extension_dir=/usr/local/share/postgresql/extension
 ENV extensionName=postgrest_openapi
+ENV extensionVersion=0.0.1
+
+ENV extension_dir=/usr/local/share/postgresql/extension
 ENV build_dir=/buildroot
 ENV out_dir=$build_dir/output
 
@@ -28,5 +30,6 @@ RUN chmod a+x /docker-entrypoint-initdb.d/run-tests.sh
 FROM postgres-openapi-base AS postgres-openapi
 
 RUN mkdir $extension_dir/bin
-COPY sql/*.sql $extension_dir/share/postgresql/extension/
-COPY --from=postgres-openapi-build $build_dir/${extensionName}.control $extension_dir/share/postgresql/extension/
+COPY --from=postgres-openapi-build $build_dir/sql/${extensionName}--${extensionVersion}.sql $extension_dir/
+COPY --from=postgres-openapi-build $build_dir/${extensionName}.control $extension_dir/
+COPY hosting/build-and-run/scripts/initdb.sql /docker-entrypoint-initdb.d/

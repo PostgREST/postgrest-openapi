@@ -2,5 +2,3 @@
 relocatable = false
 default_version = '@EXTVERSION@'
 comment = 'OpenAPI extension for PostgREST (requires PostgREST)'
-# FIX: Not required for tests, but should be required in production
-#requires = 'postgrest'
