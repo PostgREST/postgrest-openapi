@@ -1,17 +1,17 @@
 /*
-File: configuration.sql
-Purpose: Contains the Configuration setup and helper functions
+File: servers.sql
+Purpose: Builds/manages the `servers` section of the OpenAPI document
 
 Other doco/notes:
--	First line of description (COMMENT) is used as summary; following lines are used as description
--	Things to search for in this file: FIX, FIXMVP, QUESTION
+-	Things to search for in this file: FIX, FIXMVP
 
 */
 
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
--- \echo Use "CREATE EXTENSION openapi" to load this file. \quit
+\echo Use "CREATE EXTENSION openapi" to load this file. \quit
 
 ---------- General Configuration (excluding servers) ----------
+-- Should probably be removed when we have config stuff working properly
 CREATE TABLE configuration (
 	name	TEXT,
 	value	TEXT,
@@ -52,14 +52,13 @@ Has a few additions to support server overriding:
 CREATE TABLE servers (
 	slug		TEXT NOT NULL DEFAULT 'default',        -- A slug that says what category of URL we're looking at
 	url		TEXT NOT NULL,                          -- URL as per OpenAPI 3.0.1
-		-- FIX: would like to convert to https://github.com/petere/pguri but not sure what the team will think -- see ques>
+		-- FIX: would like to convert to https://github.com/petere/pguri but not sure what the team will think -- see question at https://github.com/PostgREST/postgrest/issues/1698
 	description	TEXT,
 	variables	JSONB,
 	priority	INTEGER NOT NULL,
 	PRIMARY KEY (slug, priority)
 );
 INSERT INTO servers (url, description, priority) VALUES ('http://0.0.0.0:80/', 'Default URL', 10);
-INSERT INTO servers (url, description, priority) VALUES ('http://0.0.0.0:80/', 'Default URL', 20);
 /*
 COPY servers (url, description, priority) FROM stdin;
 http://0.0.0.0:80/	Default URL	10
@@ -93,12 +92,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE setServerFromConfig()
+CREATE OR REPLACE PROCEDURE set_server_from_configuration()
 AS $$
 DECLARE
-	port	int;
 	scheme	text;
 	host	text;
+	port	int;
+
+	url_string		text;
+	description_string	text;
 BEGIN
 	port := current_setting('pgrst.server_port', TRUE);
 	scheme := CASE
@@ -111,13 +113,14 @@ BEGIN
 	END;
 
 	IF LENGTH(host) > 0 AND port > 0 AND LENGTH(scheme) > 0 THEN
-		UPDATE servers
-		SET
-			url = FORMAT('%s://%s:%s/', scheme, host, port),
-			description = 'URL from configuration'
-		WHERE
-			slug = 'default'
-			AND priority = 20;
+		url_string := FORMAT('%s://%s:%s/', scheme, host, port);
+		description_string := 'URL from configuration';
+		INSERT INTO servers (url, description, slug, priority) 
+		VALUES (url_string, url_description, 'default', 20)
+		ON CONFLICT (slug, priority) DO
+			UPDATE SET
+				url = url_string,
+				description = description_string
 	ELSE
 		DELETE FROM servers WHERE
 			slug = 'default'
@@ -128,4 +131,4 @@ $$ LANGUAGE plpgsql;
 
 -- Calls this config on startup
 -- FIXMVP: How do we run this on config change?  
-CALL setServerFromConfig();
+CALL set_server_from_configuration();

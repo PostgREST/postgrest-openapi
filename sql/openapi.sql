@@ -32,20 +32,6 @@ select jsonb_strip_nulls(
   );
 $$;
 
-create or replace function openapi_server_object(
-  url text,
-  description text default null,
-  variables jsonb default null
-)
-returns jsonb language sql as
-$$
-select jsonb_build_object(
-  'url', url,
-  'description', description,
-  'variables', variables
-)
-$$;
-
 create or replace function openapi_info_object(
   title text,
   version text,
