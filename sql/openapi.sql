@@ -3,6 +3,7 @@
 create or replace function openapi_object(
   openapi text,
   info jsonb,
+  xsoftware jsonb,
   paths jsonb,
   jsonSchemaDialect text default null,
   servers jsonb default null,
@@ -18,6 +19,7 @@ select jsonb_strip_nulls(
     jsonb_build_object(
          'openapi', openapi,
          'info', info,
+         'x-software', xsoftware,
          'paths', paths,
          'jsonSchemaDialect', jsonSchemaDialect,
          'servers', servers,
@@ -64,6 +66,20 @@ select jsonb_build_object(
     'contact', contact,
     'license', license
   );
+$$;
+
+create or replace function openapi_x_software_object(
+	name	text,
+	version	text,
+	description	text
+)
+	returns jsonb language sql as
+$$
+select json_build_object(
+	'x-name', name,
+	'x-version', version,
+	'x-description', description
+);
 $$;
 
 create or replace function openapi_components_object(
