@@ -26,9 +26,24 @@ clean_fixtures:
 # extra dep for PostgreSQL targets in pgxs.mk
 clean: clean_fixtures
 
+# Docker stuff
+DOCKER_COMPOSE_COMMAND_TESTS=docker-compose --file hosting/tests/docker-compose.yml --project-directory .
+DOCKER_COMPOSE_COMMAND_FINAL=docker-compose --file hosting/final/docker-compose.yml --project-directory .
+docker-build-test:
+	$(DOCKER_COMPOSE_COMMAND_TESTS) build
+	$(DOCKER_COMPOSE_COMMAND_TESTS) down --remove-orphans
+	$(DOCKER_COMPOSE_COMMAND_TESTS) up -d
+	sleep 3
+	docker logs postgrest-openapi_postgrest-openapi-build_1
+docker-build: docker-build-test
+	$(DOCKER_COMPOSE_COMMAND_FINAL) build
+	$(DOCKER_COMPOSE_COMMAND_FINAL) down --remove-orphans
+	$(DOCKER_COMPOSE_COMMAND_FINAL) up -d
+
+# Postgres stuff
 TESTS = $(wildcard test/sql/*.sql)
 REGRESS = $(patsubst test/sql/%.sql,%,$(TESTS))
-REGRESS_OPTS = --use-existing --inputdir=test
+REGRESS_OPTS = --use-existing --inputdir=test --outputdir=output
 
 EXTRA_CLEAN = sql/$(EXTENSION).sql sql/$(EXTENSION)--$(EXTVERSION).sql $(EXTENSION).control
 

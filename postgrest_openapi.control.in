@@ -1,2 +1,6 @@
+# Initially relocatable, but not after creation.  If we want to change this, go to https://wiki.postgresql.org/wiki/Extensions and read the set_schema section (right near the bottom)
 relocatable = false
 default_version = '@EXTVERSION@'
+comment = 'OpenAPI extension for PostgREST (requires PostgREST)'
+# FIX: Not required for tests, but should be required in production
+#requires = 'postgrest'
