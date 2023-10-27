@@ -73,20 +73,23 @@ SELECT pg_catalog.pg_extension_config_dump('servers', '');
 CREATE OR REPLACE FUNCTION openapi_server_objects()
 RETURNS JSONB AS $$
 DECLARE
-	looprec RECORD;
+	json_result	jsonb;
 BEGIN
 	-- cf. https://stackoverflow.com/questions/61874745/postgresql-get-first-non-null-value-per-group
-	RETURN QUERY json_agg(
-		WITH tservers (slug, url, description, variables) AS (
-			SELECT slug, url FROM servers ORDER BY priority DESCENDING
+	WITH
+		tservers AS (
+			SELECT slug, url, description, variables FROM servers ORDER BY priority DESC
+		),
+		jq AS (SELECT
+			(ARRAY_AGG(url		) FILTER (WHERE url		IS NOT NULL))[1] AS url,
+			(ARRAY_AGG(description	) FILTER (WHERE description	IS NOT NULL))[1] AS description,
+			(ARRAY_AGG(variables	) FILTER (WHERE variables	IS NOT NULL))[1] AS variables  -- URL variables
+			FROM tservers
+			GROUP BY slug
 		)
-		SELECT
-			(ARRAY_AGG(url		) FILTER (WHERE url		IS NOT NULL))[1], -- URL
-			(ARRAY_AGG(description	) FILTER (WHERE description	IS NOT NULL))[1], -- Description
-			(ARRAY_AGG(variables	) FILTER (WHERE variables	IS NOT NULL))[1]  -- URL variables
-		FROM tservers
-		GROUP BY slug
-	);
+	SELECT json_agg(jq) FROM jq INTO json_result;
+
+	RETURN json_result;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -107,16 +110,19 @@ BEGIN
 		ELSE current_setting('pgrst.server_host', TRUE)
 	END;
 
-	IF host = null THEN RAISE INFO 'Host is null'; END IF;
-	IF port = null THEN RAISE INFO 'Port is null'; END IF;
-
-	UPDATE servers
-	SET
-		url = FORMAT('%s://%s:%s/', scheme, host, port),
-		description = 'URL from configuration'
-	WHERE
-		slug = 'default'
-		AND priority = 20;
+	IF LENGTH(host) > 0 AND port > 0 AND LENGTH(scheme) > 0 THEN
+		UPDATE servers
+		SET
+			url = FORMAT('%s://%s:%s/', scheme, host, port),
+			description = 'URL from configuration'
+		WHERE
+			slug = 'default'
+			AND priority = 20;
+	ELSE
+		DELETE FROM servers WHERE
+			slug = 'default'
+			AND priority = 20;
+	END IF;
 END;
 $$ LANGUAGE plpgsql;
 

@@ -1,8 +1,14 @@
 -- Default PostgREST OpenAPI Specification
 
+create or replace function callable_root() returns jsonb as $$
+	SELECT get_postgrest_openapi_spec(
+		schemas := string_to_array(current_setting('pgrst.db_schemas', TRUE), ','),
+		version := 'not-spec'
+	);
+$$ language sql;
+
 create or replace function get_postgrest_openapi_spec(
   schemas text[],
-  server_proxy_uri text default 'http://0.0.0.0:3000',
   version text default null
 )
 returns jsonb language sql as
