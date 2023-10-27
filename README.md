@@ -54,6 +54,9 @@ For those who insist on Docker:
 ```bash
 # To build a docker image and run the tests in it
 make docker-build-test
+
+# To build a docker image for actual use
+make docker-build
 ```
 
 ## References
