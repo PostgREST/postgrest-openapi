@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  postgrest-openapi-build:
+    build:
+      context: .
+      dockerfile: hosting/Dockerfile
+      target: postgres-openapi
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=test_db

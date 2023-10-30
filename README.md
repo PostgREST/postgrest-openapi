@@ -50,6 +50,15 @@ nix-shell --run "with-pg-15 psql contrib_regression"
 nix-shell --run "with-pg-13 make installcheck"
 ```
 
+For those who insist on Docker:
+```bash
+# To build a docker image and run the tests in it
+make docker-build-test
+
+# To build a docker image for actual use
+make docker-build
+```
+
 ## References
 
 - [OpenAPI 3 Specification Documentation](https://spec.openapis.org/oas/v3.1.0): The official documentation of the spec.
