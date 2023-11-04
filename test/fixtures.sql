@@ -83,10 +83,10 @@ create table private.secret_table (
 -- Sample PostgREST config -- https://postgrest.org/en/stable/references/configuration.html#in-database-configuration
 create schema postgrest;
 
+-- Create pseudo-config, since we're not actually using PostgREST in the test
 create or replace function postgrest.pre_config()
 returns void as $$
   select
-      set_config('pgrst.server_port', '3000', true)
-    , set_config('pgrst.server_host', '127.0.0.2', true);
+      set_config('pgrst.server_port', '3000', false)
+    , set_config('pgrst.server_host', '127.0.0.2', false);
 $$ language sql;
-SELECT postgrest.pre_config();

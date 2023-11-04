@@ -58,7 +58,7 @@ CREATE TABLE servers (
 	priority	INTEGER NOT NULL,
 	PRIMARY KEY (slug, priority)
 );
-INSERT INTO servers (url, description, priority) VALUES ('http://0.0.0.0:80/', 'Default URL', 10);
+INSERT INTO servers (url, description, priority) VALUES ('http://0.0.0.0:3000/', 'Default URL', 10);
 /*
 COPY servers (url, description, priority) FROM stdin;
 http://0.0.0.0:80/	Default URL	10
@@ -102,7 +102,7 @@ DECLARE
 	url_string		text;
 	description_string	text;
 BEGIN
-	port := current_setting('pgrst.server_port', TRUE);
+	port:= COALESCE(NULLIF(REGEXP_REPLACE(current_setting('pgrst.server_port', TRUE), '[^0-9]', '', 'g'), '')::bigint, 443);
 	scheme := CASE
 		WHEN port = 80 THEN 'http'
 		ELSE 'https'
@@ -116,11 +116,11 @@ BEGIN
 		url_string := FORMAT('%s://%s:%s/', scheme, host, port);
 		description_string := 'URL from configuration';
 		INSERT INTO servers (url, description, slug, priority) 
-		VALUES (url_string, url_description, 'default', 20)
+		VALUES (url_string, description_string, 'default', 20)
 		ON CONFLICT (slug, priority) DO
 			UPDATE SET
 				url = url_string,
-				description = description_string
+				description = description_string;
 	ELSE
 		DELETE FROM servers WHERE
 			slug = 'default'

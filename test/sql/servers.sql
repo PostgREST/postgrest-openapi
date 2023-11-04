@@ -1,3 +1,6 @@
+-- Loads the config
+SELECT postgrest.pre_config();
+
 -- shows the default server
 select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'servers');
 

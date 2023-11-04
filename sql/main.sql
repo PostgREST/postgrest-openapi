@@ -1,6 +1,8 @@
 -- Default PostgREST OpenAPI Specification
 
 create or replace function callable_root() returns jsonb as $$
+	-- Calling this every time is inefficient, but it's the best we can do until PostgREST calls it when it updates the server config
+	CALL set_server_from_configuration();
 	SELECT get_postgrest_openapi_spec(
 		schemas := string_to_array(current_setting('pgrst.db_schemas', TRUE), ','),
 		version := 'not-spec'
