@@ -27,7 +27,8 @@ clean_fixtures:
 clean: clean_fixtures
 
 ##### Docker stuff
-BASE_VAR=$(basename $(pwd))
+PWD := $(shell pwd)
+BASE_VAR := $(shell basename $(PWD))
 DOCKER_COMPOSE_COMMAND_BASE=docker-compose --project-directory . --env-file hosting/environment.env
 DOCKER_COMPOSE_COMMAND_TESTS=$(DOCKER_COMPOSE_COMMAND_BASE) --file hosting/tests/docker-compose.yml
 docker-build-test:
