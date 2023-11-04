@@ -18,4 +18,4 @@ jobs:
       - name: Run tests
         run: nix-shell --run "with-pg-${{ matrix.pg-version }} make installcheck"
       - if: ${{ failure() }}
-        run: cat regression.diffs
+        run: cat output/regression.diffs
