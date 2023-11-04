@@ -1,4 +1,5 @@
 -- shows the default server
+DELETE FROM servers WHERE slug = 'default' and priority = 20;
 select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'servers');
 
 -- Loads the config -- only needed because we're not using actual PostgREST in the tests

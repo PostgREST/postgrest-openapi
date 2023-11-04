@@ -21,6 +21,7 @@ CREATE TABLE configuration (
 INSERT INTO configuration (name, value) VALUES ('mode', 'follow-privileges');
 INSERT INTO configuration (name, value) VALUES ('security-active', 'false');
 INSERT INTO configuration (name, value) VALUES ('api-name', '');
+INSERT INTO configuration (name, value) VALUES ('api-version', '');
 INSERT INTO configuration (name, value) VALUES ('api-description', '');
 /*
 COPY configuration (name, value) FROM STDIN;

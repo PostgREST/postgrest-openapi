@@ -87,6 +87,9 @@ create schema postgrest;
 create or replace function postgrest.pre_config()
 returns void as $$
   select
-      set_config('pgrst.server_port', '3000', false)
-    , set_config('pgrst.server_host', '127.0.0.2', false);
+    set_config('pgrst.server_port', '3000', false),
+    set_config('pgrst.server_host', '127.0.0.2', false),
+    set_config('pgrst.db_schemas', 'test', false),
+    set_config('pgrst.version', '0000.1111', false)
+  ;
 $$ language sql;
