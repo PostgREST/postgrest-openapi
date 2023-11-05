@@ -53,16 +53,16 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'servers');
 -----------------------------------------------------------------------------
  [                                                                          +
      {                                                                      +
-         "url": "https://www.example.com/api/",                             +
-         "description": "Overriding URL"                                    +
-     },                                                                     +
-     {                                                                      +
          "url": "https://www.example.com/otherapi/?s={s}&browser={browser}",+
          "variables": {                                                     +
              "s": "worms",                                                  +
              "browser": "none"                                              +
          },                                                                 +
          "description": "Additional URL"                                    +
+     },                                                                     +
+     {                                                                      +
+         "url": "https://www.example.com/api/",                             +
+         "description": "Overriding URL"                                    +
      }                                                                      +
  ]
 (1 row)

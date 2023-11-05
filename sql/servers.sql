@@ -86,6 +86,7 @@ BEGIN
 			(ARRAY_AGG(variables	) FILTER (WHERE variables	IS NOT NULL))[1] AS variables  -- URL variables
 			FROM tservers
 			GROUP BY slug
+			ORDER BY slug
 		)
 	SELECT json_agg(jq) FROM jq INTO json_result;
 
