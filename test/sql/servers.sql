@@ -17,7 +17,7 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'servers');
 
 -- shows the additional custom server url specified by the user
 INSERT INTO servers (url, description, priority, slug, variables)
-	VALUES ('https://www.example.com/otherapi/?s={s}&browser={browser}', 'Additional URL', 30, 'additional', '{"s": "worms", "browser": "none"}');
+  VALUES ('https://www.example.com/otherapi/?s={s}&browser={browser}', 'Additional URL', 30, 'additional', '{"s": "worms", "browser": "none"}');
 select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'servers');
 
 -- Shows the configuration table

@@ -2,14 +2,14 @@
 
 -- This is the one we should be calling
 create or replace function callable_root() returns jsonb as $$
-	-- Calling this every time is inefficient, but it's the best we can do until PostgREST calls it when it updates the server config
-	CALL set_server_from_configuration();
-	SELECT get_postgrest_openapi_spec(
-		schemas := string_to_array(current_setting('pgrst.db_schemas', TRUE), ','),
-		postgrest_version := current_setting('pgrst.version', TRUE),
-		proa_version := '0.1'::text, -- FIX: needs to be updated; put into config, and have Makefile update
-		document_version := 'unset'::text
-	);
+  -- Calling this every time is inefficient, but it's the best we can do until PostgREST calls it when it updates the server config
+  CALL set_server_from_configuration();
+  SELECT get_postgrest_openapi_spec(
+    schemas := string_to_array(current_setting('pgrst.db_schemas', TRUE), ','),
+    postgrest_version := current_setting('pgrst.version', TRUE),
+    proa_version := '0.1'::text, -- TODO: needs to be updated; put into config, and have Makefile update
+    document_version := 'unset'::text
+  );
 $$ language sql;
 
 -- This one returns the OpenAPI JSON; instead of calling it directly, call "callable_root", below

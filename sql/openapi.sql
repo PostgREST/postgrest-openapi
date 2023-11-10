@@ -55,16 +55,16 @@ select jsonb_build_object(
 $$;
 
 create or replace function openapi_x_software_object(
-	name	text,
-	version	text,
-	description	text
+  name text,
+  version text,
+  description text
 )
-	returns jsonb language sql as
+  returns jsonb language sql as
 $$
 select json_build_object(
-	'x-name', name,
-	'x-version', version,
-	'x-description', description
+  'x-name', name,
+  'x-version', version,
+  'x-description', description
 );
 $$;
 
