@@ -1,5 +1,3 @@
--- Test get_postgrest_openapi_spec
---select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'servers');
 -- Loads the config -- only needed because we're not using actual PostgREST in the tests
 SELECT postgrest.pre_config();
  pre_config 
