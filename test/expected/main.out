@@ -1,0 +1,41 @@
+-- Loads the config -- only needed because we're not using actual PostgREST in the tests
+SELECT postgrest.pre_config();
+ pre_config 
+------------
+ 
+(1 row)
+
+-- Sets the config; would be called if we called callable_root() (in main)
+CALL set_server_from_configuration();
+-- Ensures the config is loaded
+SELECT current_setting('pgrst.db_schemas', TRUE);
+ current_setting 
+-----------------
+ test
+(1 row)
+
+SELECT string_to_array(current_setting('pgrst.db_schemas', TRUE), ',');
+ string_to_array 
+-----------------
+ {test}
+(1 row)
+
+-- Tests get_postgrest_openapi_spec with parameters
+SELECT count(get_postgrest_openapi_spec(
+  schemas := string_to_array(current_setting('pgrst.db_schemas', TRUE), ','),
+  postgrest_version := current_setting('pgrst.version', TRUE),
+  proa_version := '0.1'::text, -- TODO: needs to be updated; put into config, and have Makefile update
+  document_version := 'unset'::text
+));
+ count 
+-------
+     1
+(1 row)
+
+-- shows the default server
+SELECT count(jsonb_pretty(callable_root()));
+ count 
+-------
+     1
+(1 row)
+

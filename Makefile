@@ -26,15 +26,18 @@ clean_fixtures:
 # extra dep for PostgreSQL targets in pgxs.mk
 clean: clean_fixtures
 
-# Docker stuff
+##### Docker stuff
+PWD := $(shell pwd)
+BASE_VAR := $(shell basename $(PWD))
+CONTAINER_NAME := $(BASE_VAR)_postgrest-openapi-build_1
 DOCKER_COMPOSE_COMMAND_BASE=docker-compose --project-directory . --env-file hosting/environment.env
 DOCKER_COMPOSE_COMMAND_TESTS=$(DOCKER_COMPOSE_COMMAND_BASE) --file hosting/tests/docker-compose.yml
 docker-build-test:
 	$(DOCKER_COMPOSE_COMMAND_TESTS) build --force
 	$(DOCKER_COMPOSE_COMMAND_TESTS) down --remove-orphans
 	$(DOCKER_COMPOSE_COMMAND_TESTS) up -d
-	sleep 3
-	docker logs postgrest-openapi_postgrest-openapi-build_1
+	sleep 4
+	docker logs $(CONTAINER_NAME)
 
 DOCKER_COMPOSE_COMMAND_FINAL=$(DOCKER_COMPOSE_COMMAND_BASE) --file hosting/final/docker-compose.yml
 docker-build: docker-build-test
@@ -48,7 +51,18 @@ docker-build-and-run: docker-build
 	$(DOCKER_COMPOSE_COMMAND_BAR) down --remove-orphans
 	$(DOCKER_COMPOSE_COMMAND_BAR) up -d
 
-# Postgres stuff
+# make docker-output-save EXPORT=main
+docker-output-save: docker-build-test
+ifeq ("$(EXPORT)","")
+	echo "Please use: make docker-output-save EXPORT=<test-set>\nWhere <test-set> is any of the files in test/sql (but without the sql on the end"
+else
+	$(eval CONTAINER_ID := $(shell docker inspect --type container --format '{{.Id}}' $(CONTAINER_NAME)) )
+	docker commit $(CONTAINER_ID) debug/$(CONTAINER_NAME)
+	docker run -it --rm --entrypoint sh debug/$(CONTAINER_NAME) -c "cat /buildroot/output/results/$(EXPORT).out" | dos2unix > test/expected/$(EXPORT).out
+endif
+
+
+##### Postgres stuff
 TESTS = $(wildcard test/sql/*.sql)
 REGRESS = $(patsubst test/sql/%.sql,%,$(TESTS))
 REGRESS_OPTS = --use-existing --inputdir=test --outputdir=output
