@@ -1,4 +1,8 @@
--- Functions to build the the OpenAPI output
+-- Functions and types to build the the OpenAPI output
+
+-- TODO: create enum for openapi type e.g. string, number, etc.
+create type parameter_object_in as enum ('query', 'header', 'path', 'cookie');
+create type parameter_object_style as enum ('simple', 'form');
 
 create or replace function openapi_object(
   openapi text,
@@ -179,4 +183,35 @@ $$
 select json_build_object(
   '$ref', '#/components/schemas/' || ref
 );
+$$;
+
+create or replace function openapi_parameter_object(
+  name text,
+  "in" parameter_object_in,
+  description text default null,
+  required boolean default null,
+  deprecated boolean default null,
+  allowEmptyValue boolean default null,
+  style parameter_object_style default null,
+  explode boolean default null,
+  "schema" jsonb default null,
+  example boolean default null,
+  examples text default null
+)
+returns jsonb language sql as
+$$
+  -- TODO: Add missing logic between fields (e.g. example and examples are mutually exclusive)
+  select jsonb_build_object(
+    'name', name,
+    'in', "in",
+    'description', description,
+    'required', required,
+    'deprecated', deprecated,
+    'allowEmptyValue', allowEmptyValue,
+    'style', style,
+    'explode', explode,
+    'schema', "schema",
+    'example', example,
+    'examples', examples
+  )
 $$;

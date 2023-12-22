@@ -509,3 +509,69 @@ returns text language sql as
 $$
 select '11.0.1 (4197d2f)'
 $$;
+
+create or replace function postgrest_get_query_params ()
+returns jsonb language sql as
+$$
+select jsonb_agg(param_object) from unnest(
+  array['select','order', 'limit', 'offset', 'on_conflict', 'columns'],
+  array[
+    openapi_parameter_object(
+      name := 'select',
+      "in" := 'query',
+      description := 'Vertical filtering of columns',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'array',
+        items := openapi_schema_object(type := 'string')
+      )
+    ),
+    openapi_parameter_object(
+      name := 'order',
+      "in" := 'query',
+      description := 'Ordering by column',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'array',
+        items := openapi_schema_object(type := 'string')
+      )
+    ),
+    openapi_parameter_object(
+      name := 'limit',
+      "in" := 'query',
+      description := 'Limit the number of rows returned',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'integer'
+      )
+    ),
+    openapi_parameter_object(
+      name := 'offset',
+      "in" := 'query',
+      description := 'Skip a certain number of rows',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'integer'
+      )
+    ),
+    openapi_parameter_object(
+      name := 'on_conflict',
+      "in" := 'query',
+      description := 'Columns that resolve the upsert conflict',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'string'
+      )
+    ),
+    openapi_parameter_object(
+      name := 'columns',
+      "in" := 'query',
+      description := 'Specify the only keys from the payload that will be inserted',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'string'
+      )
+    )
+  ]
+) as _(name, param_object);
+$$;
