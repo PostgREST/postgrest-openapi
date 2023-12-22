@@ -1,0 +1,36 @@
+-- shows common query parameters
+select *
+from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'parameters')
+where key in ('select', 'order', 'limit', 'offset', 'on_conflict', 'columns', 'or', 'and', 'not.or', 'not.and');
+     key     |                                                                                     value                                                                                     
+-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ or          | {"in": "query", "name": "or", "schema": {"type": "string"}, "explode": false, "description": "Logical operator to combine filters using OR"}
+ and         | {"in": "query", "name": "and", "schema": {"type": "string"}, "explode": false, "description": "Logical operator to combine filters using AND (the default for query params)"}
+ limit       | {"in": "query", "name": "limit", "schema": {"type": "integer"}, "explode": false, "description": "Limit the number of rows returned"}
+ order       | {"in": "query", "name": "order", "schema": {"type": "array", "items": {"type": "string"}}, "explode": false, "description": "Ordering by column"}
+ not.or      | {"in": "query", "name": "not.or", "schema": {"type": "string"}, "explode": false, "description": "Negate the logical operator to combine filters using OR"}
+ offset      | {"in": "query", "name": "offset", "schema": {"type": "integer"}, "explode": false, "description": "Skip a certain number of rows"}
+ select      | {"in": "query", "name": "select", "schema": {"type": "array", "items": {"type": "string"}}, "explode": false, "description": "Vertical filtering of columns"}
+ columns     | {"in": "query", "name": "columns", "schema": {"type": "string"}, "explode": false, "description": "Specify which keys from the payload will be inserted"}
+ not.and     | {"in": "query", "name": "not.and", "schema": {"type": "string"}, "explode": false, "description": "Negate the logical operator to combine filters using AND"}
+ on_conflict | {"in": "query", "name": "on_conflict", "schema": {"type": "string"}, "explode": false, "description": "Columns that resolve the upsert conflict"}
+(10 rows)
+
+-- shows common headers
+select *
+from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'parameters')
+where key in ('preferParams', 'preferReturn', 'preferCount', 'preferResolution', 'preferTransaction', 'preferMissing', 'preferHandling', 'preferTimezone', 'preferMaxAffected', 'range');
+        key        |                                                                                                   value                                                                                                    
+-------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ range             | {"in": "header", "name": "Range", "schema": {"type": "string"}, "example": "5-10", "description": "For limits and pagination"}
+ preferCount       | {"in": "header", "name": "Prefer", "schema": {"enum": ["count=exact", "count=planned", "count=estimated"], "type": "string"}, "description": "Get the total size of the table"}
+ preferParams      | {"in": "header", "name": "Prefer", "schema": {"enum": ["params=single-object"], "type": "string"}, "description": "Send JSON as a single parameter"}
+ preferReturn      | {"in": "header", "name": "Prefer", "schema": {"enum": ["return=minimal", "return=headers-only", "return=representation"], "type": "string"}, "description": "Return information of the affected resource"}
+ preferMissing     | {"in": "header", "name": "Prefer", "schema": {"enum": ["missing=default", "missing=null"], "type": "string"}, "description": "Handle null values in bulk inserts"}
+ preferHandling    | {"in": "header", "name": "Prefer", "schema": {"enum": ["handling=strict", "handling=lenient"], "type": "string"}, "description": "Handle invalid preferences"}
+ preferTimezone    | {"in": "header", "name": "Prefer", "schema": {"type": "string"}, "example": "timezone=UTC", "description": "Specify the time zone"}
+ preferResolution  | {"in": "header", "name": "Prefer", "schema": {"enum": ["resolution=merge-duplicates", "resolution=ignore-duplicates"], "type": "string"}, "description": "Handle duplicates in an upsert"}
+ preferMaxAffected | {"in": "header", "name": "Prefer", "schema": {"type": "string"}, "example": "max-affected=5", "description": "Limit the number of affected resources"}
+ preferTransaction | {"in": "header", "name": "Prefer", "schema": {"enum": ["tx=commit", "tx=rollback"], "type": "string"}, "description": "Specify how to end a transaction"}
+(10 rows)
+
