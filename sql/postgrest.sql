@@ -513,8 +513,8 @@ $$;
 create or replace function postgrest_get_query_params ()
 returns jsonb language sql as
 $$
-select jsonb_agg(param_object) from unnest(
-  array['select','order', 'limit', 'offset', 'on_conflict', 'columns'],
+select jsonb_object_agg(name, param_object) from unnest(
+  array['select','order', 'limit', 'offset', 'on_conflict', 'columns', 'or', 'and', 'not.or', 'not.and'],
   array[
     openapi_parameter_object(
       name := 'select',
@@ -566,8 +566,167 @@ select jsonb_agg(param_object) from unnest(
     openapi_parameter_object(
       name := 'columns',
       "in" := 'query',
-      description := 'Specify the only keys from the payload that will be inserted',
+      description := 'Specify which keys from the payload will be inserted',
       explode := false,
+      schema := openapi_schema_object(
+        type := 'string'
+      )
+    ),
+    openapi_parameter_object(
+      name := 'or',
+      "in" := 'query',
+      description := 'Logical operator to combine filters using OR',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'string'
+      )
+    ),
+    openapi_parameter_object(
+      name := 'and',
+      "in" := 'query',
+      description := 'Logical operator to combine filters using AND (the default for query params)',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'string'
+      )
+    ),
+    openapi_parameter_object(
+      name := 'not.or',
+      "in" := 'query',
+      description := 'Negate the logical operator to combine filters using OR',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'string'
+      )
+    ),
+    openapi_parameter_object(
+      name := 'not.and',
+      "in" := 'query',
+      description := 'Negate the logical operator to combine filters using AND',
+      explode := false,
+      schema := openapi_schema_object(
+        type := 'string'
+      )
+    )
+  ]
+) as _(name, param_object);
+$$;
+
+create or replace function postgrest_get_headers ()
+returns jsonb language sql as
+$$
+select jsonb_object_agg(name, param_object) from unnest(
+  array['preferParams', 'preferReturn', 'preferCount', 'preferResolution', 'preferTransaction', 'preferMissing', 'preferHandling', 'preferTimezone', 'preferMaxAffected', 'range'],
+  array[
+    openapi_parameter_object(
+      name := 'Prefer',
+      "in" := 'header',
+      description := 'Send JSON as a single parameter',
+      schema := openapi_schema_object(
+        type := 'string',
+        "enum" := jsonb_build_array(
+          'params=single-object'
+        )
+      )
+    ),
+    openapi_parameter_object(
+      name := 'Prefer',
+      "in" := 'header',
+      description := 'Return information of the affected resource',
+      schema := openapi_schema_object(
+        type := 'string',
+        "enum" := jsonb_build_array(
+          'return=minimal',
+          'return=headers-only',
+          'return=representation'
+        )
+      )
+    ),
+    openapi_parameter_object(
+      name := 'Prefer',
+      "in" := 'header',
+      description := 'Get the total size of the table',
+      schema := openapi_schema_object(
+        type := 'string',
+        "enum" := jsonb_build_array(
+          'count=exact',
+          'count=planned',
+          'count=estimated'
+        )
+      )
+    ),
+    openapi_parameter_object(
+      name := 'Prefer',
+      "in" := 'header',
+      description := 'Handle duplicates in an upsert',
+      schema := openapi_schema_object(
+        type := 'string',
+        "enum" := jsonb_build_array(
+          'resolution=merge-duplicates',
+          'resolution=ignore-duplicates'
+        )
+      )
+    ),
+    openapi_parameter_object(
+      name := 'Prefer',
+      "in" := 'header',
+      description := 'Specify how to end a transaction',
+      schema := openapi_schema_object(
+        type := 'string',
+        "enum" := jsonb_build_array(
+          'tx=commit',
+          'tx=rollback'
+        )
+      )
+    ),
+    openapi_parameter_object(
+      name := 'Prefer',
+      "in" := 'header',
+      description := 'Handle null values in bulk inserts',
+      schema := openapi_schema_object(
+        type := 'string',
+        "enum" := jsonb_build_array(
+          'missing=default',
+          'missing=null'
+        )
+      )
+    ),
+    openapi_parameter_object(
+      name := 'Prefer',
+      "in" := 'header',
+      description := 'Handle invalid preferences',
+      schema := openapi_schema_object(
+        type := 'string',
+        "enum" := jsonb_build_array(
+          'handling=strict',
+          'handling=lenient'
+        )
+      )
+    ),
+    openapi_parameter_object(
+      name := 'Prefer',
+      "in" := 'header',
+      description := 'Specify the time zone',
+      example := '"timezone=UTC"',
+      schema := openapi_schema_object(
+        -- The time zones can be queried, but there are ~500 of them. It could slow down the UIs (unverified).
+        type := 'string'
+      )
+    ),
+    openapi_parameter_object(
+      name := 'Prefer',
+      "in" := 'header',
+      description := 'Limit the number of affected resources',
+      example := '"max-affected=5"',
+      schema := openapi_schema_object(
+        type := 'string'
+      )
+    ),
+    openapi_parameter_object(
+      name := 'Range',
+      "in" := 'header',
+      description := 'For limits and pagination',
+      example := '"5-10"',
       schema := openapi_schema_object(
         type := 'string'
       )

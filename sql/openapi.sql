@@ -195,8 +195,8 @@ create or replace function openapi_parameter_object(
   style parameter_object_style default null,
   explode boolean default null,
   "schema" jsonb default null,
-  example boolean default null,
-  examples text default null
+  example jsonb default null,
+  examples jsonb default null
 )
 returns jsonb language sql as
 $$

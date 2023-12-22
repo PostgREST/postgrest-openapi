@@ -47,7 +47,7 @@ select openapi_object(
   paths := '{}',
   components := openapi_components_object(
     schemas := postgrest_tables_to_openapi_schema_components(schemas) || postgrest_composite_types_to_openapi_schema_components(schemas),
-    parameters := postgrest_get_query_params()
+    parameters := postgrest_get_query_params() || postgrest_get_headers()
   )
 )
 from postgrest_get_schema_description(schemas[1]) sd;
