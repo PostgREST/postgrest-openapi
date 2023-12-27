@@ -3,6 +3,8 @@
 -- TODO: create enum for openapi type e.g. string, number, etc.
 create type parameter_object_in as enum ('query', 'header', 'path', 'cookie');
 create type parameter_object_style as enum ('simple', 'form');
+create type security_schema_object_in as enum ('query', 'header', 'cookie');
+create type security_schema_object_type as enum ('apiKey', 'http', 'mutualTLS', 'oauth2', 'openIdConnect');
 
 create or replace function openapi_object(
   openapi text,
@@ -214,4 +216,29 @@ $$
     'example', example,
     'examples', examples
   )
+$$;
+
+create or replace function openapi_security_scheme_object(
+  type security_schema_object_type,
+  description text default null,
+  -- TODO: the following should be required depending on the "type"
+  name text default null,
+  "in" security_schema_object_in default null,
+  scheme text default null,
+  bearerFormat text default null,
+  flows jsonb default null,
+  openIdConnectUrl text default null
+)
+returns jsonb language sql as
+$$
+  select jsonb_build_object(
+    'type', type,
+    'description', description,
+    'name', name,
+    'in', "in",
+    'scheme', scheme,
+    'bearerFormat', bearerFormat,
+    'flows', flows,
+    'openIdConnectUrl', openIdConnectUrl
+  );
 $$;

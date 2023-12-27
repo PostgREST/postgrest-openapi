@@ -1,0 +1,19 @@
+-- shows the JWT security scheme
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'securitySchemes'->'JWT');
+                                        jsonb_pretty                                        
+--------------------------------------------------------------------------------------------
+ {                                                                                         +
+     "type": "http",                                                                       +
+     "scheme": "bearer",                                                                   +
+     "description": "Adds the JSON Web Token to the `Authorization: Bearer <JWT>` header.",+
+     "bearerFormat": "JWT"                                                                 +
+ }
+(1 row)
+
+-- lists the JWT scheme as a security requirement object 
+select get_postgrest_openapi_spec('{public}')->'security' <@ '[{"JWT": []}]'::jsonb as has_jwt;
+ has_jwt 
+---------
+ t
+(1 row)
+

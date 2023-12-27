@@ -734,3 +734,16 @@ select jsonb_object_agg(name, param_object) from unnest(
   ]
 ) as _(name, param_object);
 $$;
+
+create or replace function postgrest_get_security_schemes ()
+returns jsonb language sql as
+$$
+  select jsonb_build_object(
+    'JWT', openapi_security_scheme_object(
+      type := 'http',
+      description := 'Adds the JSON Web Token to the `Authorization: Bearer <JWT>` header.',
+      scheme := 'bearer',
+      bearerFormat := 'JWT'
+    )
+  );
+$$;
