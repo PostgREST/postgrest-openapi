@@ -9,7 +9,7 @@ SQL functions to build the OpenAPI output of a PostgREST instance.
   - [x] Server object (replaces host, basePath and schemes from OAS 2.0)
   - [ ] Components object
     - [x] Schemas (definitions in OAS 2.0)
-    - [ ] Security scheme (security definitions in OAS 2.0)
+    - [x] Security scheme (security definitions in OAS 2.0)
     - [ ] Parameters
     - [ ] Responses (produces in OAS 2.0 - simple implementation)
     - [ ] Request bodies (consumes in OAS 2.0 - simple implementation)
