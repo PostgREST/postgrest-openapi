@@ -1,5 +1,4 @@
--- Functions to get and transform the information that PostgREST uses
--- for the OpenAPI output
+-- Functions to get information from PostgREST to generate the OpenAPI output
 
 -- TODO: simplify the query to have only relevant info for OpenAPI
 -- TODO: verify if this query should directly send the data in JSONB format
@@ -107,9 +106,9 @@ WITH
       jsonb_object_agg(
         info.column_name,
           case when info.is_composite then
-            openapi_build_ref(info.data_type)
+            oas_reference_object(info.data_type)
           else
-            openapi_schema_object(
+            oas_schema_object(
               description :=  info.description,
               type := pgtype_to_oastype(info.data_type),
               format := info.data_type::text,
@@ -121,9 +120,9 @@ WITH
                 when not info.is_array then
                   null
                 when info.item_is_composite then
-                  openapi_build_ref(info.item_data_type)
+                  oas_reference_object(info.item_data_type)
                 else
-                  openapi_schema_object(
+                  oas_schema_object(
                     type := pgtype_to_oastype(info.item_data_type),
                     format := info.item_data_type::text
                   )
@@ -259,23 +258,6 @@ WHERE c.relkind IN ('v','r','m','f','p')
   AND n.nspname NOT IN ('pg_catalog', 'information_schema')
   AND not c.relispartition
 ORDER BY table_schema, table_name;
-$$;
-
-create or replace function postgrest_tables_to_openapi_schema_components(schemas text[])
-returns jsonb language sql as
-$$
-select jsonb_object_agg(x.table_name, x.oas_schema)
-from (
-  select table_name,
-    openapi_schema_object(
-      description := table_description,
-      properties := columns,
-      required := required_cols,
-      type := 'object'
-    ) as oas_schema
-  from postgrest_get_all_tables(schemas)
-  where table_schema = any(schemas)
-) x;
 $$;
 
 -- TODO: This function could be integrated in postgrest_get_all_tables
@@ -414,9 +396,9 @@ WITH
       jsonb_object_agg(
           info.column_name,
           case when info.is_composite then
-            openapi_build_ref(info.data_type)
+            oas_reference_object(info.data_type)
           else
-            openapi_schema_object(
+            oas_schema_object(
               description :=  info.description,
               type := pgtype_to_oastype(info.data_type),
               format := info.data_type::text,
@@ -428,9 +410,9 @@ WITH
                 when not info.is_array then
                   null
                 when info.item_is_composite then
-                  openapi_build_ref(info.item_data_type)
+                  oas_reference_object(info.item_data_type)
                 else
-                  openapi_schema_object(
+                  oas_schema_object(
                     type := pgtype_to_oastype(info.item_data_type),
                     format := info.item_data_type::text
                   )
@@ -465,21 +447,6 @@ WHERE c.relkind = 'c'
   AND n.nspname NOT IN ('pg_catalog', 'information_schema');
 $$;
 
-create or replace function postgrest_composite_types_to_openapi_schema_components(schemas text[])
-returns jsonb language sql as
-$$
-SELECT coalesce(jsonb_object_agg(x.ct_name, x.oas_schema), '{}')
-FROM (
-  SELECT comptype_schema || '.' || comptype_name as ct_name,
-         openapi_schema_object(
-           description := comptype_description,
-           properties := columns,
-           type := 'object'
-         ) AS oas_schema
-  FROM postgrest_get_all_composite_types(schemas)
-) x;
-$$;
-
 create or replace function postgrest_get_schema_description(schema text)
 returns table (
   title text,
@@ -501,249 +468,4 @@ from (
   where
       n.nspname = schema
 ) sd;
-$$;
-
--- TODO: placeholder, verify if it can be get using https://github.com/PostgREST/postgrest/issues/2647
-create or replace function postgrest_get_version()
-returns text language sql as
-$$
-select '11.0.1 (4197d2f)'
-$$;
-
-create or replace function postgrest_get_query_params ()
-returns jsonb language sql as
-$$
-select jsonb_object_agg(name, param_object) from unnest(
-  array['select','order', 'limit', 'offset', 'on_conflict', 'columns', 'or', 'and', 'not.or', 'not.and'],
-  array[
-    openapi_parameter_object(
-      name := 'select',
-      "in" := 'query',
-      description := 'Vertical filtering of columns',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'array',
-        items := openapi_schema_object(type := 'string')
-      )
-    ),
-    openapi_parameter_object(
-      name := 'order',
-      "in" := 'query',
-      description := 'Ordering by column',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'array',
-        items := openapi_schema_object(type := 'string')
-      )
-    ),
-    openapi_parameter_object(
-      name := 'limit',
-      "in" := 'query',
-      description := 'Limit the number of rows returned',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'integer'
-      )
-    ),
-    openapi_parameter_object(
-      name := 'offset',
-      "in" := 'query',
-      description := 'Skip a certain number of rows',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'integer'
-      )
-    ),
-    openapi_parameter_object(
-      name := 'on_conflict',
-      "in" := 'query',
-      description := 'Columns that resolve the upsert conflict',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'string'
-      )
-    ),
-    openapi_parameter_object(
-      name := 'columns',
-      "in" := 'query',
-      description := 'Specify which keys from the payload will be inserted',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'string'
-      )
-    ),
-    openapi_parameter_object(
-      name := 'or',
-      "in" := 'query',
-      description := 'Logical operator to combine filters using OR',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'string'
-      )
-    ),
-    openapi_parameter_object(
-      name := 'and',
-      "in" := 'query',
-      description := 'Logical operator to combine filters using AND (the default for query params)',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'string'
-      )
-    ),
-    openapi_parameter_object(
-      name := 'not.or',
-      "in" := 'query',
-      description := 'Negate the logical operator to combine filters using OR',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'string'
-      )
-    ),
-    openapi_parameter_object(
-      name := 'not.and',
-      "in" := 'query',
-      description := 'Negate the logical operator to combine filters using AND',
-      explode := false,
-      schema := openapi_schema_object(
-        type := 'string'
-      )
-    )
-  ]
-) as _(name, param_object);
-$$;
-
-create or replace function postgrest_get_headers ()
-returns jsonb language sql as
-$$
-select jsonb_object_agg(name, param_object) from unnest(
-  array['preferParams', 'preferReturn', 'preferCount', 'preferResolution', 'preferTransaction', 'preferMissing', 'preferHandling', 'preferTimezone', 'preferMaxAffected', 'range'],
-  array[
-    openapi_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Send JSON as a single parameter',
-      schema := openapi_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'params=single-object'
-        )
-      )
-    ),
-    openapi_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Return information of the affected resource',
-      schema := openapi_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'return=minimal',
-          'return=headers-only',
-          'return=representation'
-        )
-      )
-    ),
-    openapi_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Get the total size of the table',
-      schema := openapi_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'count=exact',
-          'count=planned',
-          'count=estimated'
-        )
-      )
-    ),
-    openapi_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Handle duplicates in an upsert',
-      schema := openapi_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'resolution=merge-duplicates',
-          'resolution=ignore-duplicates'
-        )
-      )
-    ),
-    openapi_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Specify how to end a transaction',
-      schema := openapi_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'tx=commit',
-          'tx=rollback'
-        )
-      )
-    ),
-    openapi_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Handle null values in bulk inserts',
-      schema := openapi_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'missing=default',
-          'missing=null'
-        )
-      )
-    ),
-    openapi_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Handle invalid preferences',
-      schema := openapi_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'handling=strict',
-          'handling=lenient'
-        )
-      )
-    ),
-    openapi_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Specify the time zone',
-      example := '"timezone=UTC"',
-      schema := openapi_schema_object(
-        -- The time zones can be queried, but there are ~500 of them. It could slow down the UIs (unverified).
-        type := 'string'
-      )
-    ),
-    openapi_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Limit the number of affected resources',
-      example := '"max-affected=5"',
-      schema := openapi_schema_object(
-        type := 'string'
-      )
-    ),
-    openapi_parameter_object(
-      name := 'Range',
-      "in" := 'header',
-      description := 'For limits and pagination',
-      example := '"5-10"',
-      schema := openapi_schema_object(
-        type := 'string'
-      )
-    )
-  ]
-) as _(name, param_object);
-$$;
-
-create or replace function postgrest_get_security_schemes ()
-returns jsonb language sql as
-$$
-  select jsonb_build_object(
-    'JWT', openapi_security_scheme_object(
-      type := 'http',
-      description := 'Adds the JSON Web Token to the `Authorization: Bearer <JWT>` header.',
-      scheme := 'bearer',
-      bearerFormat := 'JWT'
-    )
-  );
 $$;

@@ -56,7 +56,7 @@ INSERT INTO servers (url, description, priority) VALUES ('http://0.0.0.0:3000/',
 SELECT pg_catalog.pg_extension_config_dump('servers', '');
 
 -- Get servers, with the priorities, etc, already sorted out
-CREATE OR REPLACE FUNCTION openapi_server_objects()
+CREATE OR REPLACE FUNCTION oas_build_servers()
 RETURNS JSONB AS $$
 DECLARE
   json_result jsonb;

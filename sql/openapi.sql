@@ -1,12 +1,12 @@
 -- Functions and types to build the the OpenAPI output
 
 -- TODO: create enum for openapi type e.g. string, number, etc.
-create type parameter_object_in as enum ('query', 'header', 'path', 'cookie');
-create type parameter_object_style as enum ('simple', 'form');
-create type security_schema_object_in as enum ('query', 'header', 'cookie');
-create type security_schema_object_type as enum ('apiKey', 'http', 'mutualTLS', 'oauth2', 'openIdConnect');
+create type oas_parameter_in as enum ('query', 'header', 'path', 'cookie');
+create type oas_parameter_style as enum ('simple', 'form');
+create type oas_security_scheme_in as enum ('query', 'header', 'cookie');
+create type oas_security_scheme_type as enum ('apiKey', 'http', 'mutualTLS', 'oauth2', 'openIdConnect');
 
-create or replace function openapi_object(
+create or replace function oas_openapi_object(
   openapi text,
   info jsonb,
   xsoftware jsonb,
@@ -38,7 +38,7 @@ select jsonb_strip_nulls(
   );
 $$;
 
-create or replace function openapi_info_object(
+create or replace function oas_info_object(
   title text,
   version text,
   summary text default null,
@@ -60,7 +60,7 @@ select jsonb_build_object(
   );
 $$;
 
-create or replace function openapi_x_software_object(
+create or replace function oas_x_software_object(
   name text,
   version text,
   description text
@@ -74,7 +74,7 @@ select json_build_object(
 );
 $$;
 
-create or replace function openapi_components_object(
+create or replace function oas_components_object(
   schemas jsonb default null,
   responses jsonb default null,
   parameters jsonb default null,
@@ -102,7 +102,7 @@ select json_build_object(
 );
 $$;
 
-create or replace function openapi_schema_object(
+create or replace function oas_schema_object(
   title text default null,
   description text default null,
   enum jsonb default null,
@@ -179,7 +179,8 @@ $$
   )
 $$;
 
-create or replace function openapi_build_ref(ref text)
+-- TODO: should be a Reference Object and not only for "components/schemas"
+create or replace function oas_reference_object(ref text)
 returns jsonb language sql as
 $$
 select json_build_object(
@@ -187,14 +188,14 @@ select json_build_object(
 );
 $$;
 
-create or replace function openapi_parameter_object(
+create or replace function oas_parameter_object(
   name text,
-  "in" parameter_object_in,
+  "in" oas_parameter_in,
   description text default null,
   required boolean default null,
   deprecated boolean default null,
   allowEmptyValue boolean default null,
-  style parameter_object_style default null,
+  style oas_parameter_style default null,
   explode boolean default null,
   "schema" jsonb default null,
   example jsonb default null,
@@ -218,12 +219,12 @@ $$
   )
 $$;
 
-create or replace function openapi_security_scheme_object(
-  type security_schema_object_type,
+create or replace function oas_security_scheme_object(
+  type oas_security_scheme_type,
   description text default null,
   -- TODO: the following should be required depending on the "type"
   name text default null,
-  "in" security_schema_object_in default null,
+  "in" oas_security_scheme_in default null,
   scheme text default null,
   bearerFormat text default null,
   flows jsonb default null,
