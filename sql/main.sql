@@ -43,13 +43,9 @@ select openapi_object(
       description := 'Automatically/dynamically turns a PostgreSQL database directly into a RESTful API'
     )
   ),
-  servers := openapi_server_objects(),
+  servers := oas_build_servers(),
   paths := '{}',
-  components := openapi_components_object(
-    schemas := postgrest_tables_to_openapi_schema_components(schemas) || postgrest_composite_types_to_openapi_schema_components(schemas),
-    parameters := postgrest_get_query_params() || postgrest_get_headers(),
-    securitySchemes := postgrest_get_security_schemes()
-  ),
+  components := oas_build_components(schemas),
   security := '[{"JWT": []}]'
 )
 from postgrest_get_schema_description(schemas[1]) sd;

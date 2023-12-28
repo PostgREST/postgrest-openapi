@@ -179,6 +179,7 @@ $$
   )
 $$;
 
+-- TODO: should be a Reference Object and not only for "components/schemas"
 create or replace function openapi_build_ref(ref text)
 returns jsonb language sql as
 $$
