@@ -15,11 +15,11 @@ $$;
 create or replace function oas_build_component_schemas(schemas text[])
 returns jsonb language sql as
 $$
-  select oas_build_component_schemas_tables(schemas) ||
-         oas_build_component_schemas_composite_types(schemas)
+  select oas_build_component_schemas_from_tables(schemas) ||
+         oas_build_component_schemas_from_composite_types(schemas)
 $$;
 
-create or replace function oas_build_component_schemas_tables(schemas text[])
+create or replace function oas_build_component_schemas_from_tables(schemas text[])
 returns jsonb language sql as
 $$
 select jsonb_object_agg(x.table_name, x.oas_schema)
@@ -36,7 +36,7 @@ from (
 ) x;
 $$;
 
-create or replace function oas_build_component_schemas_composite_types(schemas text[])
+create or replace function oas_build_component_schemas_from_composite_types(schemas text[])
 returns jsonb language sql as
 $$
 SELECT coalesce(jsonb_object_agg(x.ct_name, x.oas_schema), '{}')
