@@ -3,7 +3,7 @@
 create or replace function oas_build_components(schemas text[])
 returns jsonb language sql as
 $$
-select openapi_components_object(
+select oas_components_object(
   schemas := oas_build_component_schemas(schemas),
   parameters := oas_build_component_parameters(),
   securitySchemes := oas_build_component_security_schemes()
@@ -25,7 +25,7 @@ $$
 select jsonb_object_agg(x.table_name, x.oas_schema)
 from (
   select table_name,
-    openapi_schema_object(
+    oas_schema_object(
       description := table_description,
       properties := columns,
       required := required_cols,
@@ -42,7 +42,7 @@ $$
 SELECT coalesce(jsonb_object_agg(x.ct_name, x.oas_schema), '{}')
 FROM (
   SELECT comptype_schema || '.' || comptype_name as ct_name,
-         openapi_schema_object(
+         oas_schema_object(
            description := comptype_description,
            properties := columns,
            type := 'object'
@@ -66,95 +66,95 @@ $$
 select jsonb_object_agg(name, param_object) from unnest(
   array['select','order', 'limit', 'offset', 'on_conflict', 'columns', 'or', 'and', 'not.or', 'not.and'],
   array[
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'select',
       "in" := 'query',
       description := 'Vertical filtering of columns',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'array',
-        items := openapi_schema_object(type := 'string')
+        items := oas_schema_object(type := 'string')
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'order',
       "in" := 'query',
       description := 'Ordering by column',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'array',
-        items := openapi_schema_object(type := 'string')
+        items := oas_schema_object(type := 'string')
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'limit',
       "in" := 'query',
       description := 'Limit the number of rows returned',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'integer'
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'offset',
       "in" := 'query',
       description := 'Skip a certain number of rows',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'integer'
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'on_conflict',
       "in" := 'query',
       description := 'Columns that resolve the upsert conflict',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string'
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'columns',
       "in" := 'query',
       description := 'Specify which keys from the payload will be inserted',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string'
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'or',
       "in" := 'query',
       description := 'Logical operator to combine filters using OR',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string'
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'and',
       "in" := 'query',
       description := 'Logical operator to combine filters using AND (the default for query params)',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string'
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'not.or',
       "in" := 'query',
       description := 'Negate the logical operator to combine filters using OR',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string'
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'not.and',
       "in" := 'query',
       description := 'Negate the logical operator to combine filters using AND',
       explode := false,
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string'
       )
     )
@@ -168,22 +168,22 @@ $$
 select jsonb_object_agg(name, param_object) from unnest(
   array['preferParams', 'preferReturn', 'preferCount', 'preferResolution', 'preferTransaction', 'preferMissing', 'preferHandling', 'preferTimezone', 'preferMaxAffected', 'range'],
   array[
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Prefer',
       "in" := 'header',
       description := 'Send JSON as a single parameter',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string',
         "enum" := jsonb_build_array(
           'params=single-object'
         )
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Prefer',
       "in" := 'header',
       description := 'Return information of the affected resource',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string',
         "enum" := jsonb_build_array(
           'return=minimal',
@@ -192,11 +192,11 @@ select jsonb_object_agg(name, param_object) from unnest(
         )
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Prefer',
       "in" := 'header',
       description := 'Get the total size of the table',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string',
         "enum" := jsonb_build_array(
           'count=exact',
@@ -205,11 +205,11 @@ select jsonb_object_agg(name, param_object) from unnest(
         )
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Prefer',
       "in" := 'header',
       description := 'Handle duplicates in an upsert',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string',
         "enum" := jsonb_build_array(
           'resolution=merge-duplicates',
@@ -217,11 +217,11 @@ select jsonb_object_agg(name, param_object) from unnest(
         )
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Prefer',
       "in" := 'header',
       description := 'Specify how to end a transaction',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string',
         "enum" := jsonb_build_array(
           'tx=commit',
@@ -229,11 +229,11 @@ select jsonb_object_agg(name, param_object) from unnest(
         )
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Prefer',
       "in" := 'header',
       description := 'Handle null values in bulk inserts',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string',
         "enum" := jsonb_build_array(
           'missing=default',
@@ -241,11 +241,11 @@ select jsonb_object_agg(name, param_object) from unnest(
         )
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Prefer',
       "in" := 'header',
       description := 'Handle invalid preferences',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string',
         "enum" := jsonb_build_array(
           'handling=strict',
@@ -253,31 +253,31 @@ select jsonb_object_agg(name, param_object) from unnest(
         )
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Prefer',
       "in" := 'header',
       description := 'Specify the time zone',
       example := '"timezone=UTC"',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         -- The time zones can be queried, but there are ~500 of them. It could slow down the UIs (unverified).
         type := 'string'
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Prefer',
       "in" := 'header',
       description := 'Limit the number of affected resources',
       example := '"max-affected=5"',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string'
       )
     ),
-    openapi_parameter_object(
+    oas_parameter_object(
       name := 'Range',
       "in" := 'header',
       description := 'For limits and pagination',
       example := '"5-10"',
-      schema := openapi_schema_object(
+      schema := oas_schema_object(
         type := 'string'
       )
     )
@@ -291,7 +291,7 @@ create or replace function oas_build_component_security_schemes ()
 returns jsonb language sql as
 $$
   select jsonb_build_object(
-    'JWT', openapi_security_scheme_object(
+    'JWT', oas_security_scheme_object(
       type := 'http',
       description := 'Adds the JSON Web Token to the `Authorization: Bearer <JWT>` header.',
       scheme := 'bearer',

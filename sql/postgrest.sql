@@ -106,9 +106,9 @@ WITH
       jsonb_object_agg(
         info.column_name,
           case when info.is_composite then
-            openapi_build_ref(info.data_type)
+            oas_reference_object(info.data_type)
           else
-            openapi_schema_object(
+            oas_schema_object(
               description :=  info.description,
               type := pgtype_to_oastype(info.data_type),
               format := info.data_type::text,
@@ -120,9 +120,9 @@ WITH
                 when not info.is_array then
                   null
                 when info.item_is_composite then
-                  openapi_build_ref(info.item_data_type)
+                  oas_reference_object(info.item_data_type)
                 else
-                  openapi_schema_object(
+                  oas_schema_object(
                     type := pgtype_to_oastype(info.item_data_type),
                     format := info.item_data_type::text
                   )
@@ -396,9 +396,9 @@ WITH
       jsonb_object_agg(
           info.column_name,
           case when info.is_composite then
-            openapi_build_ref(info.data_type)
+            oas_reference_object(info.data_type)
           else
-            openapi_schema_object(
+            oas_schema_object(
               description :=  info.description,
               type := pgtype_to_oastype(info.data_type),
               format := info.data_type::text,
@@ -410,9 +410,9 @@ WITH
                 when not info.is_array then
                   null
                 when info.item_is_composite then
-                  openapi_build_ref(info.item_data_type)
+                  oas_reference_object(info.item_data_type)
                 else
-                  openapi_schema_object(
+                  oas_schema_object(
                     type := pgtype_to_oastype(info.item_data_type),
                     format := info.item_data_type::text
                   )
