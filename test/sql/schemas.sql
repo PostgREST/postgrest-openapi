@@ -45,3 +45,8 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas
 
 -- references a composite type column from an array composite type inside the items property
 select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'colors'->'items');
+
+-- defines all the available prefer headers
+select key, jsonb_pretty(value)
+from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'schemas')
+where key like 'header.prefer%';

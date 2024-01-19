@@ -243,3 +243,19 @@ $$
     'openIdConnectUrl', openIdConnectUrl
   );
 $$;
+
+create or replace function oas_example_object(
+  summary text default null,
+  description text default null,
+  value jsonb default null,
+  externalValue text default null
+)
+returns jsonb language sql as
+$$
+  select jsonb_build_object(
+    'summary', summary,
+    'description', description,
+    'value', value,
+    'externalValue', externalValue
+  );
+$$;

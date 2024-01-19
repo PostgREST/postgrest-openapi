@@ -17,20 +17,267 @@ where key in ('select', 'order', 'limit', 'offset', 'on_conflict', 'columns', 'o
 (10 rows)
 
 -- shows common headers
-select *
+select key, jsonb_pretty(value)
 from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'parameters')
-where key in ('preferParams', 'preferReturn', 'preferCount', 'preferResolution', 'preferTransaction', 'preferMissing', 'preferHandling', 'preferTimezone', 'preferMaxAffected', 'range');
-        key        |                                                                                                   value                                                                                                    
--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- range             | {"in": "header", "name": "Range", "schema": {"type": "string"}, "example": "5-10", "description": "For limits and pagination"}
- preferCount       | {"in": "header", "name": "Prefer", "schema": {"enum": ["count=exact", "count=planned", "count=estimated"], "type": "string"}, "description": "Get the total size of the table"}
- preferParams      | {"in": "header", "name": "Prefer", "schema": {"enum": ["params=single-object"], "type": "string"}, "description": "Send JSON as a single parameter"}
- preferReturn      | {"in": "header", "name": "Prefer", "schema": {"enum": ["return=minimal", "return=headers-only", "return=representation"], "type": "string"}, "description": "Return information of the affected resource"}
- preferMissing     | {"in": "header", "name": "Prefer", "schema": {"enum": ["missing=default", "missing=null"], "type": "string"}, "description": "Handle null values in bulk inserts"}
- preferHandling    | {"in": "header", "name": "Prefer", "schema": {"enum": ["handling=strict", "handling=lenient"], "type": "string"}, "description": "Handle invalid preferences"}
- preferTimezone    | {"in": "header", "name": "Prefer", "schema": {"type": "string"}, "example": "timezone=UTC", "description": "Specify the time zone"}
- preferResolution  | {"in": "header", "name": "Prefer", "schema": {"enum": ["resolution=merge-duplicates", "resolution=ignore-duplicates"], "type": "string"}, "description": "Handle duplicates in an upsert"}
- preferMaxAffected | {"in": "header", "name": "Prefer", "schema": {"type": "string"}, "example": "max-affected=5", "description": "Limit the number of affected resources"}
- preferTransaction | {"in": "header", "name": "Prefer", "schema": {"enum": ["tx=commit", "tx=rollback"], "type": "string"}, "description": "Specify how to end a transaction"}
-(10 rows)
+where key in ('preferGet', 'preferPost', 'preferPut', 'preferPatch', 'preferDelete', 'preferPostRpc', 'range');
+      key      |                                 jsonb_pretty                                 
+---------------+------------------------------------------------------------------------------
+ range         | {                                                                           +
+               |     "in": "header",                                                         +
+               |     "name": "Range",                                                        +
+               |     "schema": {                                                             +
+               |         "type": "string"                                                    +
+               |     },                                                                      +
+               |     "example": "5-10",                                                      +
+               |     "description": "For limits and pagination"                              +
+               | }
+ preferGet     | {                                                                           +
+               |     "in": "header",                                                         +
+               |     "name": "Prefer",                                                       +
+               |     "schema": {                                                             +
+               |         "allOf": [                                                          +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferHandling"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTimezone"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferCount"           +
+               |             }                                                               +
+               |         ]                                                                   +
+               |     },                                                                      +
+               |     "explode": true,                                                        +
+               |     "examples": {                                                           +
+               |         "all": {                                                            +
+               |             "value": {                                                      +
+               |                 "count": "",                                                +
+               |                 "handling": "lenient",                                      +
+               |                 "timezone": ""                                              +
+               |             },                                                              +
+               |             "summary": "All default preferences"                            +
+               |         },                                                                  +
+               |         "nothing": {                                                        +
+               |             "summary": "No preferences"                                     +
+               |         }                                                                   +
+               |     },                                                                      +
+               |     "description": "Specify a required or optional behavior for the request"+
+               | }
+ preferPut     | {                                                                           +
+               |     "in": "header",                                                         +
+               |     "name": "Prefer",                                                       +
+               |     "schema": {                                                             +
+               |         "allOf": [                                                          +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferHandling"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTimezone"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferReturn"          +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferCount"           +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTx"              +
+               |             }                                                               +
+               |         ]                                                                   +
+               |     },                                                                      +
+               |     "explode": true,                                                        +
+               |     "examples": {                                                           +
+               |         "all": {                                                            +
+               |             "value": {                                                      +
+               |                 "tx": "commit",                                             +
+               |                 "count": "",                                                +
+               |                 "return": "minimal",                                        +
+               |                 "handling": "lenient",                                      +
+               |                 "timezone": ""                                              +
+               |             },                                                              +
+               |             "summary": "All default preferences"                            +
+               |         },                                                                  +
+               |         "nothing": {                                                        +
+               |             "summary": "No preferences"                                     +
+               |         }                                                                   +
+               |     },                                                                      +
+               |     "description": "Specify a required or optional behavior for the request"+
+               | }
+ preferPost    | {                                                                           +
+               |     "in": "header",                                                         +
+               |     "name": "Prefer",                                                       +
+               |     "schema": {                                                             +
+               |         "allOf": [                                                          +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferHandling"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTimezone"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferReturn"          +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferCount"           +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferResolution"      +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferMissing"         +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTx"              +
+               |             }                                                               +
+               |         ]                                                                   +
+               |     },                                                                      +
+               |     "explode": true,                                                        +
+               |     "examples": {                                                           +
+               |         "all": {                                                            +
+               |             "value": {                                                      +
+               |                 "tx": "commit",                                             +
+               |                 "count": "",                                                +
+               |                 "return": "minimal",                                        +
+               |                 "missing": "null",                                          +
+               |                 "handling": "lenient",                                      +
+               |                 "timezone": "",                                             +
+               |                 "resolution": ""                                            +
+               |             },                                                              +
+               |             "summary": "All default preferences"                            +
+               |         },                                                                  +
+               |         "nothing": {                                                        +
+               |             "summary": "No preferences"                                     +
+               |         }                                                                   +
+               |     },                                                                      +
+               |     "description": "Specify a required or optional behavior for the request"+
+               | }
+ preferPatch   | {                                                                           +
+               |     "in": "header",                                                         +
+               |     "name": "Prefer",                                                       +
+               |     "schema": {                                                             +
+               |         "allOf": [                                                          +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferHandling"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTimezone"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferReturn"          +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferCount"           +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTx"              +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferMaxAffected"     +
+               |             }                                                               +
+               |         ]                                                                   +
+               |     },                                                                      +
+               |     "explode": true,                                                        +
+               |     "examples": {                                                           +
+               |         "all": {                                                            +
+               |             "value": {                                                      +
+               |                 "tx": "commit",                                             +
+               |                 "count": "",                                                +
+               |                 "return": "minimal",                                        +
+               |                 "handling": "lenient",                                      +
+               |                 "timezone": "",                                             +
+               |                 "max-affected": ""                                          +
+               |             },                                                              +
+               |             "summary": "All default preferences"                            +
+               |         },                                                                  +
+               |         "nothing": {                                                        +
+               |             "summary": "No preferences"                                     +
+               |         }                                                                   +
+               |     },                                                                      +
+               |     "description": "Specify a required or optional behavior for the request"+
+               | }
+ preferDelete  | {                                                                           +
+               |     "in": "header",                                                         +
+               |     "name": "Prefer",                                                       +
+               |     "schema": {                                                             +
+               |         "allOf": [                                                          +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferHandling"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTimezone"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferReturn"          +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferCount"           +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTx"              +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferMaxAffected"     +
+               |             }                                                               +
+               |         ]                                                                   +
+               |     },                                                                      +
+               |     "explode": true,                                                        +
+               |     "examples": {                                                           +
+               |         "all": {                                                            +
+               |             "value": {                                                      +
+               |                 "tx": "commit",                                             +
+               |                 "count": "",                                                +
+               |                 "return": "minimal",                                        +
+               |                 "handling": "lenient",                                      +
+               |                 "timezone": "",                                             +
+               |                 "max-affected": ""                                          +
+               |             },                                                              +
+               |             "summary": "All default preferences"                            +
+               |         },                                                                  +
+               |         "nothing": {                                                        +
+               |             "summary": "No preferences"                                     +
+               |         }                                                                   +
+               |     },                                                                      +
+               |     "description": "Specify a required or optional behavior for the request"+
+               | }
+ preferPostRpc | {                                                                           +
+               |     "in": "header",                                                         +
+               |     "name": "Prefer",                                                       +
+               |     "schema": {                                                             +
+               |         "allOf": [                                                          +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferHandling"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTimezone"        +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferCount"           +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferTx"              +
+               |             },                                                              +
+               |             {                                                               +
+               |                 "$ref": "#/components/schemas/header.preferParams"          +
+               |             }                                                               +
+               |         ]                                                                   +
+               |     },                                                                      +
+               |     "explode": true,                                                        +
+               |     "examples": {                                                           +
+               |         "all": {                                                            +
+               |             "value": {                                                      +
+               |                 "tx": "commit",                                             +
+               |                 "count": "",                                                +
+               |                 "params": "",                                               +
+               |                 "handling": "lenient",                                      +
+               |                 "timezone": ""                                              +
+               |             },                                                              +
+               |             "summary": "All default preferences"                            +
+               |         },                                                                  +
+               |         "nothing": {                                                        +
+               |             "summary": "No preferences"                                     +
+               |         }                                                                   +
+               |     },                                                                      +
+               |     "description": "Specify a required or optional behavior for the request"+
+               | }
+(7 rows)
 

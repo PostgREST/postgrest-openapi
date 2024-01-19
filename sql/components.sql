@@ -16,7 +16,8 @@ create or replace function oas_build_component_schemas(schemas text[])
 returns jsonb language sql as
 $$
   select oas_build_component_schemas_from_tables(schemas) ||
-         oas_build_component_schemas_from_composite_types(schemas)
+         oas_build_component_schemas_from_composite_types(schemas) ||
+         oas_build_component_schemas_headers()
 $$;
 
 create or replace function oas_build_component_schemas_from_tables(schemas text[])
@@ -49,6 +50,122 @@ FROM (
          ) AS oas_schema
   FROM postgrest_get_all_composite_types(schemas)
 ) x;
+$$;
+
+create or replace function oas_build_component_schemas_headers()
+returns jsonb language sql as
+$$
+select jsonb_build_object(
+  'header.preferParams',
+  oas_schema_object(
+    type := 'object',
+    properties := jsonb_build_object(
+      'params',
+      oas_schema_object(
+        description := 'Send JSON as a single parameter',
+        type := 'string',
+        "enum" := '["single-object"]'
+      )
+    )
+  ),
+  'header.preferReturn',
+  oas_schema_object(
+    type:= 'object',
+    properties := jsonb_build_object(
+      'return',
+      oas_schema_object(
+        description := 'Return information of the affected resource',
+        type := 'string',
+        "enum" := '["minimal", "headers-only", "representation"]',
+        "default" := 'minimal'
+      )
+    )
+  ),
+  'header.preferCount',
+  oas_schema_object(
+    type:= 'object',
+    properties := jsonb_build_object(
+      'count',
+      oas_schema_object(
+        description := 'Get the total size of the table',
+        type := 'string',
+        "enum" := '["exact", "planned", "estimated"]'
+      )
+    )
+  ),
+  'header.preferResolution',
+  oas_schema_object(
+    type:= 'object',
+    properties := jsonb_build_object(
+      'resolution',
+      oas_schema_object(
+        description := 'Handle duplicates in an upsert',
+        type := 'string',
+        "enum" := '["merge-duplicates", "ignore-duplicates"]'
+      )
+    )
+  ),
+  'header.preferTx',
+  oas_schema_object(
+    type:= 'object',
+    properties := jsonb_build_object(
+      'tx',
+      oas_schema_object(
+        description := 'Specify how to end a transaction',
+        type := 'string',
+        "enum" := '["commit", "rollback"]'
+      )
+    )
+  ),
+  'header.preferMissing',
+  oas_schema_object(
+    type:= 'object',
+    properties := jsonb_build_object(
+      'missing',
+      oas_schema_object(
+        description := 'Handle null values in bulk inserts',
+        type := 'string',
+        "enum" := '["default", "null"]',
+        "default" := 'null'
+      )
+    )
+  ),
+  'header.preferHandling',
+  oas_schema_object(
+    type:= 'object',
+    properties := jsonb_build_object(
+      'handling',
+      oas_schema_object(
+        description := 'How to handle invalid preferences',
+        type := 'string',
+        "enum" := '["strict", "lenient"]',
+        "default" := 'lenient'
+      )
+    )
+  ),
+  'header.preferTimezone',
+  oas_schema_object(
+    type:= 'object',
+    properties := jsonb_build_object(
+      'timezone',
+      oas_schema_object(
+        description := 'Specify the time zone',
+        type := 'string'
+      )
+    )
+  ),
+  'header.preferMaxAffected',
+  oas_schema_object(
+    type:= 'object',
+    properties := jsonb_build_object(
+      'max-affected',
+      oas_schema_object(
+        description := 'Specify the amount of resources affected',
+        type := 'integer'
+      )
+    )
+  )
+)
 $$;
 
 -- Parameters
@@ -165,124 +282,220 @@ $$;
 create or replace function oas_build_component_parameters_headers ()
 returns jsonb language sql as
 $$
-select jsonb_object_agg(name, param_object) from unnest(
-  array['preferParams', 'preferReturn', 'preferCount', 'preferResolution', 'preferTransaction', 'preferMissing', 'preferHandling', 'preferTimezone', 'preferMaxAffected', 'range'],
-  array[
-    oas_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Send JSON as a single parameter',
-      schema := oas_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'params=single-object'
-        )
+select jsonb_build_object(
+  'preferGet',
+  oas_parameter_object(
+    name := 'Prefer',
+    "in" := 'header',
+    explode := true,
+    description := 'Specify a required or optional behavior for the request',
+    "schema" := oas_schema_object(
+      allOf := jsonb_build_array(
+        oas_reference_object('header.preferHandling'),
+        oas_reference_object('header.preferTimezone'),
+        oas_reference_object('header.preferCount')
       )
     ),
-    oas_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Return information of the affected resource',
-      schema := oas_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'return=minimal',
-          'return=headers-only',
-          'return=representation'
-        )
-      )
-    ),
-    oas_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Get the total size of the table',
-      schema := oas_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'count=exact',
-          'count=planned',
-          'count=estimated'
-        )
-      )
-    ),
-    oas_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Handle duplicates in an upsert',
-      schema := oas_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'resolution=merge-duplicates',
-          'resolution=ignore-duplicates'
-        )
-      )
-    ),
-    oas_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Specify how to end a transaction',
-      schema := oas_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'tx=commit',
-          'tx=rollback'
-        )
-      )
-    ),
-    oas_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Handle null values in bulk inserts',
-      schema := oas_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'missing=default',
-          'missing=null'
-        )
-      )
-    ),
-    oas_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Handle invalid preferences',
-      schema := oas_schema_object(
-        type := 'string',
-        "enum" := jsonb_build_array(
-          'handling=strict',
-          'handling=lenient'
-        )
-      )
-    ),
-    oas_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Specify the time zone',
-      example := '"timezone=UTC"',
-      schema := oas_schema_object(
-        -- The time zones can be queried, but there are ~500 of them. It could slow down the UIs (unverified).
-        type := 'string'
-      )
-    ),
-    oas_parameter_object(
-      name := 'Prefer',
-      "in" := 'header',
-      description := 'Limit the number of affected resources',
-      example := '"max-affected=5"',
-      schema := oas_schema_object(
-        type := 'string'
-      )
-    ),
-    oas_parameter_object(
-      name := 'Range',
-      "in" := 'header',
-      description := 'For limits and pagination',
-      example := '"5-10"',
-      schema := oas_schema_object(
-        type := 'string'
+    examples := jsonb_build_object(
+      'nothing',
+      oas_example_object(
+        summary := 'No preferences'
+      ),
+      'all',
+      oas_example_object(
+        summary := 'All default preferences',
+        value := '{
+          "handling":"lenient",
+          "timezone": "",
+          "count": ""
+        }'
       )
     )
-  ]
-) as _(name, param_object);
+  ),
+  'preferPost',
+  oas_parameter_object(
+    name := 'Prefer',
+    "in" := 'header',
+    explode := true,
+    description := 'Specify a required or optional behavior for the request',
+    "schema" := oas_schema_object(
+      allOf := jsonb_build_array(
+        oas_reference_object('header.preferHandling'),
+        oas_reference_object('header.preferTimezone'),
+        oas_reference_object('header.preferReturn'),
+        oas_reference_object('header.preferCount'),
+        oas_reference_object('header.preferResolution'),
+        oas_reference_object('header.preferMissing'),
+        oas_reference_object('header.preferTx')
+      )
+    ),
+    examples := jsonb_build_object(
+      'nothing',
+      oas_example_object(
+        summary := 'No preferences'
+      ),
+      'all',
+      oas_example_object(
+        summary := 'All default preferences',
+        value := '{
+          "handling": "lenient",
+          "timezone": "",
+          "return": "minimal",
+          "count": "",
+          "resolution": "",
+          "missing": "null",
+          "tx": "commit"
+        }'
+      )
+    )
+  ),
+  'preferPatch',
+  oas_parameter_object(
+    name := 'Prefer',
+    "in" := 'header',
+    explode := true,
+    description := 'Specify a required or optional behavior for the request',
+    "schema" := oas_schema_object(
+      allOf := jsonb_build_array(
+        oas_reference_object('header.preferHandling'),
+        oas_reference_object('header.preferTimezone'),
+        oas_reference_object('header.preferReturn'),
+        oas_reference_object('header.preferCount'),
+        oas_reference_object('header.preferTx'),
+        oas_reference_object('header.preferMaxAffected')
+      )
+    ),
+    examples := jsonb_build_object(
+      'nothing',
+      oas_example_object(
+        summary := 'No preferences'
+      ),
+      'all',
+      oas_example_object(
+        summary := 'All default preferences',
+        value := '{
+          "handling": "lenient",
+          "timezone": "",
+          "return": "minimal",
+          "count": "",
+          "max-affected": "",
+          "tx": "commit"
+        }'
+      )
+    )
+  ),
+  'preferPut',
+  oas_parameter_object(
+    name := 'Prefer',
+    "in" := 'header',
+    explode := true,
+    description := 'Specify a required or optional behavior for the request',
+    "schema" := oas_schema_object(
+      allOf := jsonb_build_array(
+        oas_reference_object('header.preferHandling'),
+        oas_reference_object('header.preferTimezone'),
+        oas_reference_object('header.preferReturn'),
+        oas_reference_object('header.preferCount'),
+        oas_reference_object('header.preferTx')
+      )
+    ),
+    examples := jsonb_build_object(
+      'nothing',
+      oas_example_object(
+        summary := 'No preferences'
+      ),
+      'all',
+      oas_example_object(
+        summary := 'All default preferences',
+        value := '{
+          "handling": "lenient",
+          "timezone": "",
+          "return": "minimal",
+          "count": "",
+          "tx": "commit"
+        }'
+      )
+    )
+  ),
+  'preferDelete',
+  oas_parameter_object(
+    name := 'Prefer',
+    "in" := 'header',
+    explode := true,
+    description := 'Specify a required or optional behavior for the request',
+    "schema" := oas_schema_object(
+      allOf := jsonb_build_array(
+        oas_reference_object('header.preferHandling'),
+        oas_reference_object('header.preferTimezone'),
+        oas_reference_object('header.preferReturn'),
+        oas_reference_object('header.preferCount'),
+        oas_reference_object('header.preferTx'),
+        oas_reference_object('header.preferMaxAffected')
+      )
+    ),
+    examples := jsonb_build_object(
+      'nothing',
+      oas_example_object(
+        summary := 'No preferences'
+      ),
+      'all',
+      oas_example_object(
+        summary := 'All default preferences',
+        value := '{
+          "handling": "lenient",
+          "timezone": "",
+          "return": "minimal",
+          "count": "",
+          "max-affected": "",
+          "tx": "commit"
+        }'
+      )
+    )
+  ),
+  'preferPostRpc',
+  oas_parameter_object(
+    name := 'Prefer',
+    "in" := 'header',
+    explode := true,
+    description := 'Specify a required or optional behavior for the request',
+    "schema" := oas_schema_object(
+      allOf := jsonb_build_array(
+        oas_reference_object('header.preferHandling'),
+        oas_reference_object('header.preferTimezone'),
+        oas_reference_object('header.preferCount'),
+        oas_reference_object('header.preferTx'),
+        oas_reference_object('header.preferParams')
+      )
+    ),
+    examples := jsonb_build_object(
+      'nothing',
+      oas_example_object(
+        summary := 'No preferences'
+      ),
+      'all',
+      oas_example_object(
+        summary := 'All default preferences',
+        value := '{
+          "handling": "lenient",
+          "timezone": "",
+          "count": "",
+          "tx": "commit",
+          "params": ""
+        }'
+      )
+    )
+  ),
+  'range',
+  oas_parameter_object(
+    name := 'Range',
+    "in" := 'header',
+    description := 'For limits and pagination',
+    example := '"5-10"',
+    "schema" := oas_schema_object(
+      type := 'string'
+    )
+  )
+);
 $$;
 
 -- Security Schemes
