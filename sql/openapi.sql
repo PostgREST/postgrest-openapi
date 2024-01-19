@@ -179,12 +179,17 @@ $$
   )
 $$;
 
--- TODO: should be a Reference Object and not only for "components/schemas"
-create or replace function oas_reference_object(ref text)
+create or replace function oas_reference_object(
+  ref text,
+  summary text default null,
+  description text default null
+)
 returns jsonb language sql as
 $$
 select json_build_object(
-  '$ref', '#/components/schemas/' || ref
+  '$ref', ref,
+  'summary', summary,
+  'description', description
 );
 $$;
 
