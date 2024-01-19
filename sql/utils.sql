@@ -14,7 +14,7 @@ select case when type like any(array['character', 'character varying', 'text']) 
 $$;
 
 create or replace function oas_build_reference_to_schemas("schema" text)
-returns jsonb language sql as
+returns jsonb language sql immutable as
 $$
   select oas_reference_object(
     '#/components/schemas/' || "schema"
