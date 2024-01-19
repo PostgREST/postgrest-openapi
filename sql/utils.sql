@@ -12,3 +12,11 @@ select case when type like any(array['character', 'character varying', 'text']) 
             when type like 'jsonb' then 'object'
             else 'string' end;
 $$;
+
+create or replace function oas_build_reference_to_schemas("schema" text)
+returns jsonb language sql as
+$$
+  select oas_reference_object(
+    '#/components/schemas/' || "schema"
+  );
+$$;

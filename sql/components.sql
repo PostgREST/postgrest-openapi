@@ -292,9 +292,9 @@ select jsonb_build_object(
     description := 'Specify a required or optional behavior for the request',
     "schema" := oas_schema_object(
       allOf := jsonb_build_array(
-        oas_reference_object('#/components/schemas/header.preferHandling'),
-        oas_reference_object('#/components/schemas/header.preferTimezone'),
-        oas_reference_object('#/components/schemas/header.preferCount')
+        oas_build_reference_to_schemas('header.preferHandling'),
+        oas_build_reference_to_schemas('header.preferTimezone'),
+        oas_build_reference_to_schemas('header.preferCount')
       )
     ),
     examples := jsonb_build_object(
@@ -321,13 +321,13 @@ select jsonb_build_object(
     description := 'Specify a required or optional behavior for the request',
     "schema" := oas_schema_object(
       allOf := jsonb_build_array(
-        oas_reference_object('#/components/schemas/header.preferHandling'),
-        oas_reference_object('#/components/schemas/header.preferTimezone'),
-        oas_reference_object('#/components/schemas/header.preferReturn'),
-        oas_reference_object('#/components/schemas/header.preferCount'),
-        oas_reference_object('#/components/schemas/header.preferResolution'),
-        oas_reference_object('#/components/schemas/header.preferMissing'),
-        oas_reference_object('#/components/schemas/header.preferTx')
+        oas_build_reference_to_schemas('header.preferHandling'),
+        oas_build_reference_to_schemas('header.preferTimezone'),
+        oas_build_reference_to_schemas('header.preferReturn'),
+        oas_build_reference_to_schemas('header.preferCount'),
+        oas_build_reference_to_schemas('header.preferResolution'),
+        oas_build_reference_to_schemas('header.preferMissing'),
+        oas_build_reference_to_schemas('header.preferTx')
       )
     ),
     examples := jsonb_build_object(
@@ -358,12 +358,12 @@ select jsonb_build_object(
     description := 'Specify a required or optional behavior for the request',
     "schema" := oas_schema_object(
       allOf := jsonb_build_array(
-        oas_reference_object('#/components/schemas/header.preferHandling'),
-        oas_reference_object('#/components/schemas/header.preferTimezone'),
-        oas_reference_object('#/components/schemas/header.preferReturn'),
-        oas_reference_object('#/components/schemas/header.preferCount'),
-        oas_reference_object('#/components/schemas/header.preferTx'),
-        oas_reference_object('#/components/schemas/header.preferMaxAffected')
+        oas_build_reference_to_schemas('header.preferHandling'),
+        oas_build_reference_to_schemas('header.preferTimezone'),
+        oas_build_reference_to_schemas('header.preferReturn'),
+        oas_build_reference_to_schemas('header.preferCount'),
+        oas_build_reference_to_schemas('header.preferTx'),
+        oas_build_reference_to_schemas('header.preferMaxAffected')
       )
     ),
     examples := jsonb_build_object(
@@ -393,11 +393,11 @@ select jsonb_build_object(
     description := 'Specify a required or optional behavior for the request',
     "schema" := oas_schema_object(
       allOf := jsonb_build_array(
-        oas_reference_object('#/components/schemas/header.preferHandling'),
-        oas_reference_object('#/components/schemas/header.preferTimezone'),
-        oas_reference_object('#/components/schemas/header.preferReturn'),
-        oas_reference_object('#/components/schemas/header.preferCount'),
-        oas_reference_object('#/components/schemas/header.preferTx')
+        oas_build_reference_to_schemas('header.preferHandling'),
+        oas_build_reference_to_schemas('header.preferTimezone'),
+        oas_build_reference_to_schemas('header.preferReturn'),
+        oas_build_reference_to_schemas('header.preferCount'),
+        oas_build_reference_to_schemas('header.preferTx')
       )
     ),
     examples := jsonb_build_object(
@@ -426,12 +426,12 @@ select jsonb_build_object(
     description := 'Specify a required or optional behavior for the request',
     "schema" := oas_schema_object(
       allOf := jsonb_build_array(
-        oas_reference_object('#/components/schemas/header.preferHandling'),
-        oas_reference_object('#/components/schemas/header.preferTimezone'),
-        oas_reference_object('#/components/schemas/header.preferReturn'),
-        oas_reference_object('#/components/schemas/header.preferCount'),
-        oas_reference_object('#/components/schemas/header.preferTx'),
-        oas_reference_object('#/components/schemas/header.preferMaxAffected')
+        oas_build_reference_to_schemas('header.preferHandling'),
+        oas_build_reference_to_schemas('header.preferTimezone'),
+        oas_build_reference_to_schemas('header.preferReturn'),
+        oas_build_reference_to_schemas('header.preferCount'),
+        oas_build_reference_to_schemas('header.preferTx'),
+        oas_build_reference_to_schemas('header.preferMaxAffected')
       )
     ),
     examples := jsonb_build_object(
@@ -461,11 +461,11 @@ select jsonb_build_object(
     description := 'Specify a required or optional behavior for the request',
     "schema" := oas_schema_object(
       allOf := jsonb_build_array(
-        oas_reference_object('#/components/schemas/header.preferHandling'),
-        oas_reference_object('#/components/schemas/header.preferTimezone'),
-        oas_reference_object('#/components/schemas/header.preferCount'),
-        oas_reference_object('#/components/schemas/header.preferTx'),
-        oas_reference_object('#/components/schemas/header.preferParams')
+        oas_build_reference_to_schemas('header.preferHandling'),
+        oas_build_reference_to_schemas('header.preferTimezone'),
+        oas_build_reference_to_schemas('header.preferCount'),
+        oas_build_reference_to_schemas('header.preferTx'),
+        oas_build_reference_to_schemas('header.preferParams')
       )
     ),
     examples := jsonb_build_object(
