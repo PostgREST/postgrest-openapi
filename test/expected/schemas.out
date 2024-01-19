@@ -285,3 +285,125 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas
  }
 (1 row)
 
+-- defines all the available prefer headers
+select key, jsonb_pretty(value)
+from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'schemas')
+where key like 'header.prefer%';
+           key            |                               jsonb_pretty                               
+--------------------------+--------------------------------------------------------------------------
+ header.preferTx          | {                                                                       +
+                          |     "type": "object",                                                   +
+                          |     "properties": {                                                     +
+                          |         "tx": {                                                         +
+                          |             "enum": [                                                   +
+                          |                 "commit",                                               +
+                          |                 "rollback"                                              +
+                          |             ],                                                          +
+                          |             "type": "string",                                           +
+                          |             "description": "Specify how to end a transaction"           +
+                          |         }                                                               +
+                          |     }                                                                   +
+                          | }
+ header.preferCount       | {                                                                       +
+                          |     "type": "object",                                                   +
+                          |     "properties": {                                                     +
+                          |         "count": {                                                      +
+                          |             "enum": [                                                   +
+                          |                 "exact",                                                +
+                          |                 "planned",                                              +
+                          |                 "estimated"                                             +
+                          |             ],                                                          +
+                          |             "type": "string",                                           +
+                          |             "description": "Get the total size of the table"            +
+                          |         }                                                               +
+                          |     }                                                                   +
+                          | }
+ header.preferParams      | {                                                                       +
+                          |     "type": "object",                                                   +
+                          |     "properties": {                                                     +
+                          |         "params": {                                                     +
+                          |             "enum": [                                                   +
+                          |                 "single-object"                                         +
+                          |             ],                                                          +
+                          |             "type": "string",                                           +
+                          |             "deprecated": true,                                         +
+                          |             "description": "Send JSON as a single parameter"            +
+                          |         }                                                               +
+                          |     }                                                                   +
+                          | }
+ header.preferReturn      | {                                                                       +
+                          |     "type": "object",                                                   +
+                          |     "properties": {                                                     +
+                          |         "return": {                                                     +
+                          |             "enum": [                                                   +
+                          |                 "minimal",                                              +
+                          |                 "headers-only",                                         +
+                          |                 "representation"                                        +
+                          |             ],                                                          +
+                          |             "type": "string",                                           +
+                          |             "default": "minimal",                                       +
+                          |             "description": "Return information of the affected resource"+
+                          |         }                                                               +
+                          |     }                                                                   +
+                          | }
+ header.preferMissing     | {                                                                       +
+                          |     "type": "object",                                                   +
+                          |     "properties": {                                                     +
+                          |         "missing": {                                                    +
+                          |             "enum": [                                                   +
+                          |                 "default",                                              +
+                          |                 "null"                                                  +
+                          |             ],                                                          +
+                          |             "type": "string",                                           +
+                          |             "default": "null",                                          +
+                          |             "description": "Handle null values in bulk inserts"         +
+                          |         }                                                               +
+                          |     }                                                                   +
+                          | }
+ header.preferHandling    | {                                                                       +
+                          |     "type": "object",                                                   +
+                          |     "properties": {                                                     +
+                          |         "handling": {                                                   +
+                          |             "enum": [                                                   +
+                          |                 "strict",                                               +
+                          |                 "lenient"                                               +
+                          |             ],                                                          +
+                          |             "type": "string",                                           +
+                          |             "default": "lenient",                                       +
+                          |             "description": "How to handle invalid preferences"          +
+                          |         }                                                               +
+                          |     }                                                                   +
+                          | }
+ header.preferTimezone    | {                                                                       +
+                          |     "type": "object",                                                   +
+                          |     "properties": {                                                     +
+                          |         "timezone": {                                                   +
+                          |             "type": "string",                                           +
+                          |             "description": "Specify the time zone"                      +
+                          |         }                                                               +
+                          |     }                                                                   +
+                          | }
+ header.preferResolution  | {                                                                       +
+                          |     "type": "object",                                                   +
+                          |     "properties": {                                                     +
+                          |         "resolution": {                                                 +
+                          |             "enum": [                                                   +
+                          |                 "merge-duplicates",                                     +
+                          |                 "ignore-duplicates"                                     +
+                          |             ],                                                          +
+                          |             "type": "string",                                           +
+                          |             "description": "Handle duplicates in an upsert"             +
+                          |         }                                                               +
+                          |     }                                                                   +
+                          | }
+ header.preferMaxAffected | {                                                                       +
+                          |     "type": "object",                                                   +
+                          |     "properties": {                                                     +
+                          |         "max-affected": {                                               +
+                          |             "type": "integer",                                          +
+                          |             "description": "Specify the amount of resources affected"   +
+                          |         }                                                               +
+                          |     }                                                                   +
+                          | }
+(9 rows)
+

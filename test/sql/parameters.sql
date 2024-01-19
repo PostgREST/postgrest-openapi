@@ -4,6 +4,6 @@ from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'parameter
 where key in ('select', 'order', 'limit', 'offset', 'on_conflict', 'columns', 'or', 'and', 'not.or', 'not.and');
 
 -- shows common headers
-select *
+select key, jsonb_pretty(value)
 from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'parameters')
-where key in ('preferParams', 'preferReturn', 'preferCount', 'preferResolution', 'preferTransaction', 'preferMissing', 'preferHandling', 'preferTimezone', 'preferMaxAffected', 'range');
+where key in ('preferGet', 'preferPost', 'preferPut', 'preferPatch', 'preferDelete', 'preferPostRpc', 'range');
