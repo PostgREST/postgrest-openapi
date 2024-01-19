@@ -326,6 +326,7 @@ where key like 'header.prefer%';
                           |                 "single-object"                                         +
                           |             ],                                                          +
                           |             "type": "string",                                           +
+                          |             "deprecated": true,                                         +
                           |             "description": "Send JSON as a single parameter"            +
                           |         }                                                               +
                           |     }                                                                   +

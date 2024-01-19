@@ -64,7 +64,8 @@ select jsonb_build_object(
       oas_schema_object(
         description := 'Send JSON as a single parameter',
         type := 'string',
-        "enum" := '["single-object"]'
+        "enum" := '["single-object"]',
+        deprecated := true
       )
     )
   ),
