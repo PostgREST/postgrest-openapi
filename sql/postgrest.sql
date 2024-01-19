@@ -106,7 +106,7 @@ WITH
       jsonb_object_agg(
         info.column_name,
           case when info.is_composite then
-            oas_reference_object(info.data_type)
+            oas_reference_object('#/components/schemas/' || info.data_type)
           else
             oas_schema_object(
               description :=  info.description,
@@ -120,7 +120,7 @@ WITH
                 when not info.is_array then
                   null
                 when info.item_is_composite then
-                  oas_reference_object(info.item_data_type)
+                  oas_reference_object('#/components/schemas/' || info.item_data_type)
                 else
                   oas_schema_object(
                     type := pgtype_to_oastype(info.item_data_type),
@@ -396,7 +396,7 @@ WITH
       jsonb_object_agg(
           info.column_name,
           case when info.is_composite then
-            oas_reference_object(info.data_type)
+            oas_reference_object('#/components/schemas/' || info.data_type)
           else
             oas_schema_object(
               description :=  info.description,
@@ -410,7 +410,7 @@ WITH
                 when not info.is_array then
                   null
                 when info.item_is_composite then
-                  oas_reference_object(info.item_data_type)
+                  oas_reference_object('#/components/schemas/' || info.item_data_type)
                 else
                   oas_schema_object(
                     type := pgtype_to_oastype(info.item_data_type),
