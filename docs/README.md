@@ -211,7 +211,7 @@ That is why in `#/components/parameters/` we add `"preferGet"` and group in the 
 }
 ```
 
-The field `explode` is set to `true` to convert the JSON example to a key/value pair, e.g.:
+The field `explode` is set to `true` to convert the JSON example to a key/value pair separated by commas, e.g.:
 
 ```json
 {
