@@ -21,6 +21,7 @@ SQL functions to build the OpenAPI output of a PostgREST instance.
       - [ ] GET
       - [ ] POST
   - [ ] External Documentation Object
+  - [ ] Handle relevant OpenAPI elements according to user permissions
 - The next step is to fix the issues tagged with `OpenAPI` in the core repo.
 
 ## Installation
