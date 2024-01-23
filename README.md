@@ -24,6 +24,8 @@ make && sudo make install
 
 ## Development
 
+Check the code documentation at [/docs](/docs) to familiarize yourself with the project structure and function usage.
+
 For testing on your local database:
 
 ```bash
