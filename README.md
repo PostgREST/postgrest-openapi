@@ -11,9 +11,16 @@ SQL functions to build the OpenAPI output of a PostgREST instance.
     - [x] Schemas (definitions in OAS 2.0)
     - [x] Security scheme (security definitions in OAS 2.0)
     - [ ] Parameters
-    - [ ] Responses (produces in OAS 2.0 - simple implementation)
-    - [ ] Request bodies (consumes in OAS 2.0 - simple implementation)
   - [ ] Paths object
+    - [ ] Tables and Views
+      - [ ] GET
+      - [ ] POST
+      - [ ] PUT
+      - [ ] DELETE
+    - [ ] Functions
+      - [ ] GET
+      - [ ] POST
+  - [ ] External Documentation Object
 - The next step is to fix the issues tagged with `OpenAPI` in the core repo.
 
 ## Installation
