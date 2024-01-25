@@ -195,7 +195,7 @@ from (
     ) as param_schema
   from (
      select table_schema, table_name, unnest(all_cols) as column_name
-     from postgrest_get_all_tables('{public}')
+     from postgrest_get_all_tables(schemas)
   ) _
   where table_schema = any(schemas)
 ) x;
