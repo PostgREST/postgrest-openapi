@@ -13,7 +13,7 @@ SQL functions to build the OpenAPI output of a PostgREST instance.
     - [ ] Parameters
   - [ ] Paths object
     - [ ] Tables and Views
-      - [ ] GET
+      - [x] GET
       - [ ] POST
       - [ ] PUT
       - [ ] DELETE
