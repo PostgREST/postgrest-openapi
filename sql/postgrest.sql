@@ -1,7 +1,7 @@
 -- Functions to get information from PostgREST to generate the OpenAPI output
 
 -- TODO: simplify the query to have only relevant info for OpenAPI
--- TODO: to keep it reusable it may need to return data as is, that is, not using OAS objects.
+-- TODO: to keep it reusable it may need to return data as is without using OAS objects.
 --       To do so, "columns" has to be normalized (not a JSON aggregate)
 create or replace function postgrest_get_all_tables(schemas text[])
 returns table (

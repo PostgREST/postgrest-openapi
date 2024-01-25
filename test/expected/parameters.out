@@ -28,7 +28,7 @@ where key in ('preferGet', 'preferPost', 'preferPut', 'preferPatch', 'preferDele
                |     "schema": {                                                             +
                |         "type": "string"                                                    +
                |     },                                                                      +
-               |     "example": "5-10",                                                      +
+               |     "example": "0-4",                                                       +
                |     "description": "For limits and pagination"                              +
                | }
  preferGet     | {                                                                           +
