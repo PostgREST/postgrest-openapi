@@ -5,7 +5,8 @@ returns jsonb language sql as
 $$
 select oas_components_object(
   schemas := oas_build_component_schemas(schemas),
-  parameters := oas_build_component_parameters(),
+  parameters := oas_build_component_parameters(schemas),
+  responses := oas_build_response_objects(schemas),
   securitySchemes := oas_build_component_security_schemes()
 )
 $$;
@@ -171,14 +172,36 @@ $$;
 
 -- Parameters
 
-create or replace function oas_build_component_parameters()
+create or replace function oas_build_component_parameters(schemas text[])
 returns jsonb language sql as
 $$
-  select oas_build_component_parameters_query_params() ||
-         oas_build_component_parameters_headers();
+  select oas_build_component_parameters_query_params_from_tables(schemas) ||
+         oas_build_component_parameters_query_params_common() ||
+         oas_build_component_parameters_headers_common();
 $$;
 
-create or replace function oas_build_component_parameters_query_params()
+create or replace function oas_build_component_parameters_query_params_from_tables(schemas text[])
+returns jsonb language sql as
+$$
+select jsonb_object_agg(x.param_name, x.param_schema)
+from (
+  select format('rowFilter.%1$s.%2$s', table_name, column_name) as param_name,
+    oas_parameter_object(
+      name := column_name,
+      "in" := 'query',
+      schema := oas_schema_object(
+        type := 'string'
+      )
+    ) as param_schema
+  from (
+     select table_schema, table_name, unnest(all_cols) as column_name
+     from postgrest_get_all_tables('{public}')
+  ) _
+  where table_schema = any(schemas)
+) x;
+$$;
+
+create or replace function oas_build_component_parameters_query_params_common()
 returns jsonb language sql as
 $$
 select jsonb_object_agg(name, param_object) from unnest(
@@ -280,7 +303,7 @@ select jsonb_object_agg(name, param_object) from unnest(
 ) as _(name, param_object);
 $$;
 
-create or replace function oas_build_component_parameters_headers ()
+create or replace function oas_build_component_parameters_headers_common ()
 returns jsonb language sql as
 $$
 select jsonb_build_object(
@@ -491,9 +514,81 @@ select jsonb_build_object(
     name := 'Range',
     "in" := 'header',
     description := 'For limits and pagination',
-    example := '"5-10"',
+    example := '"0-4"',
     "schema" := oas_schema_object(
       type := 'string'
+    )
+  )
+);
+$$;
+
+-- Responses
+
+create or replace function oas_build_response_objects(schemas text[])
+returns jsonb language sql as
+$$
+select oas_build_response_objects_from_tables(schemas) ||
+       oas_build_response_objects_common();
+$$;
+
+create or replace function oas_build_response_objects_from_tables(schemas text[])
+returns jsonb language sql as
+$$
+select jsonb_object_agg(x.resp_name, x.resp_object)
+from (
+  select 'get.' || table_name as resp_name,
+    oas_response_object(
+      description := 'Get media types for ' || table_name,
+      content := jsonb_build_object(
+        'application/json',
+        oas_media_type_object(
+          schema := oas_schema_object(
+            type := 'array',
+            items := oas_build_reference_to_schemas(table_name)
+          )
+        ),
+        'application/vnd.pgrst.object+json',
+        oas_media_type_object(
+          schema := oas_build_reference_to_schemas(table_name)
+        ),
+        'application/vnd.pgrst.object+json;nulls=stripped',
+        oas_media_type_object(
+          schema := oas_build_reference_to_schemas(table_name)
+        ),
+        'text/csv',
+        oas_media_type_object(
+          schema := oas_schema_object(
+            type := 'string',
+            format := 'csv'
+          )
+        )
+      )
+    ) as resp_object
+  from postgrest_get_all_tables(schemas)
+  where table_schema = any(schemas)
+) x;
+$$;
+
+create or replace function oas_build_response_objects_common()
+returns jsonb language sql as
+$$
+select jsonb_build_object(
+  'defaultError',
+  oas_response_object(
+    description := 'Default error reponse',
+    content := jsonb_build_object(
+      'application/json',
+      oas_media_type_object(
+        schema := oas_schema_object(
+          type := 'object',
+          properties := jsonb_build_object(
+            'code', oas_schema_object(type := 'string'),
+            'details', oas_schema_object(type := 'string'),
+            'hint', oas_schema_object(type := 'string'),
+            'message', oas_schema_object(type := 'string')
+          )
+        )
+      )
     )
   )
 );
@@ -504,12 +599,13 @@ $$;
 create or replace function oas_build_component_security_schemes ()
 returns jsonb language sql as
 $$
-  select jsonb_build_object(
-    'JWT', oas_security_scheme_object(
-      type := 'http',
-      description := 'Adds the JSON Web Token to the `Authorization: Bearer <JWT>` header.',
-      scheme := 'bearer',
-      bearerFormat := 'JWT'
-    )
-  );
+select jsonb_build_object(
+  'JWT',
+  oas_security_scheme_object(
+    type := 'http',
+    description := 'Adds the JSON Web Token to the `Authorization: Bearer <JWT>` header.',
+    scheme := 'bearer',
+    bearerFormat := 'JWT'
+  )
+);
 $$;

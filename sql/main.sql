@@ -44,7 +44,7 @@ select oas_openapi_object(
     )
   ),
   servers := oas_build_servers(),
-  paths := '{}',
+  paths := oas_build_paths(schemas),
   components := oas_build_components(schemas),
   security := '[{"JWT": []}]'
 )

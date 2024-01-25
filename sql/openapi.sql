@@ -264,3 +264,101 @@ $$
     'externalValue', externalValue
   );
 $$;
+
+create or replace function oas_path_item_object(
+  ref text default null,
+  summary text default null,
+  description text default null,
+  get jsonb default null,
+  put jsonb default null,
+  post jsonb default null,
+  delete jsonb default null,
+  options jsonb default null,
+  head jsonb default null,
+  patch jsonb default null,
+  trace jsonb default null,
+  servers jsonb default null,
+  parameters jsonb default null
+)
+returns jsonb language sql as
+$$
+  select json_build_object(
+    '$ref', ref,
+    'summary', summary,
+    'description', description,
+    'get', get,
+    'put', put,
+    'post', post,
+    'delete', delete,
+    'options', options,
+    'head', head,
+    'patch', patch,
+    'trace', trace,
+    'servers', servers,
+    'parameters', parameters
+  )
+$$;
+
+create or replace function oas_operation_object(
+  tags text[] default null,
+  summary text default null,
+  description text default null,
+  externalDocs jsonb default null,
+  operationId text default null,
+  parameters jsonb default null,
+  requestBody jsonb default null,
+  responses jsonb default null,
+  callbacks jsonb default null,
+  deprecated boolean default null,
+  security jsonb default null,
+  servers jsonb default null
+)
+returns jsonb language sql as
+$$
+  select json_build_object(
+    'tags', tags,
+    'summary', summary,
+    'description', description,
+    'externalDocs', externalDocs,
+    'operationId', operationId,
+    'parameters', parameters,
+    'requestBody', requestBody,
+    'responses', responses,
+    'callbacks', callbacks,
+    'deprecated', deprecated,
+    'security', security,
+    'servers', servers
+  )
+$$;
+
+create or replace function oas_response_object(
+  description text,
+  headers jsonb default null,
+  content jsonb default null,
+  links jsonb default null
+)
+returns jsonb language sql as
+$$
+  select json_build_object(
+    'description', description,
+    'headers', headers,
+    'content', content,
+    'links', links
+  )
+$$;
+
+create or replace function oas_media_type_object(
+  "schema" jsonb default null,
+  example text default null,
+  examples jsonb default null,
+  encoding jsonb default null
+)
+returns jsonb language sql as
+$$
+  select json_build_object(
+    'schema', "schema",
+    'example', example,
+    'examples', examples,
+    'encoding', encoding
+  )
+$$;

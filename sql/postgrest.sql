@@ -1,7 +1,8 @@
 -- Functions to get information from PostgREST to generate the OpenAPI output
 
 -- TODO: simplify the query to have only relevant info for OpenAPI
--- TODO: verify if this query should directly send the data in JSONB format
+-- TODO: to keep it reusable it may need to return data as is, that is, not using OAS objects.
+--       To do so, "columns" has to be normalized (not a JSON aggregate)
 create or replace function postgrest_get_all_tables(schemas text[])
 returns table (
   table_schema text,
@@ -14,6 +15,7 @@ returns table (
   pk_cols text[],
   composite_cols oid[],
   required_cols text[],
+  all_cols text[],
   columns jsonb
 ) language sql as
 $$
@@ -103,6 +105,7 @@ WITH
       info.table_name AS table_name,
       array_agg(coalesce(info.composite_oid, info.item_composite_oid)) filter (where info.is_composite or info.item_is_composite) AS composite_cols,
       array_agg(info.column_name order by info.position) filter (where not info.is_nullable) AS required_cols,
+      array_agg(info.column_name order by info.position) AS all_cols,
       jsonb_object_agg(
         info.column_name,
           case when info.is_composite then
@@ -248,6 +251,7 @@ SELECT
   coalesce(tpks.pk_cols, '{}') as pk_cols,
   cols_agg.composite_cols,
   cols_agg.required_cols,
+  cols_agg.all_cols,
   coalesce(cols_agg.columns, '{}') as columns
 FROM pg_class c
   JOIN pg_namespace n ON n.oid = c.relnamespace
