@@ -1,0 +1,177 @@
+-- shows root path for the OpenAPI output
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/');
+                         jsonb_pretty                         
+--------------------------------------------------------------
+ {                                                           +
+     "get": {                                                +
+         "tags": [                                           +
+             "Introspection"                                 +
+         ],                                                  +
+         "responses": {                                      +
+             "200": {                                        +
+                 "content": {                                +
+                     "application/json": {                   +
+                         "schema": {                         +
+                             "type": "object"                +
+                         }                                   +
+                     },                                      +
+                     "application/openapi+json": {           +
+                         "schema": {                         +
+                             "type": "object"                +
+                         }                                   +
+                     }                                       +
+                 },                                          +
+                 "description": "OK"                         +
+             }                                               +
+         },                                                  +
+         "description": "OpenAPI description (this document)"+
+     }                                                       +
+ }
+(1 row)
+
+-- Tables
+-- GET operation object
+-- shows the table name as tag
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'tags');
+  jsonb_pretty  
+----------------
+ [             +
+     "products"+
+ ]
+(1 row)
+
+  
+-- uses a reference for the 200 HTTP code response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'responses'->'200');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/responses/get.products",+
+     "description": "OK"                           +
+ }
+(1 row)
+
+-- uses a reference for the 206 HTTP code response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'responses'->'206');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/responses/get.products",+
+     "description": "Partial Content"              +
+ }
+(1 row)
+
+-- uses a reference for error responses
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'responses'->'default');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/responses/defaultError",+
+     "description": "Error"                        +
+ }
+(1 row)
+
+-- uses references for columns as query parameters
+select value 
+from jsonb_array_elements(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.products.%';
+                               value                                
+--------------------------------------------------------------------
+ {"$ref": "#/components/parameters/rowFilter.products.id"}
+ {"$ref": "#/components/parameters/rowFilter.products.code"}
+ {"$ref": "#/components/parameters/rowFilter.products.name"}
+ {"$ref": "#/components/parameters/rowFilter.products.description"}
+ {"$ref": "#/components/parameters/rowFilter.products.attr"}
+ {"$ref": "#/components/parameters/rowFilter.products.size"}
+(6 rows)
+
+-- uses references for common parameters
+select value
+from jsonb_array_elements(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.products.%';
+                     value                     
+-----------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/order"}
+ {"$ref": "#/components/parameters/limit"}
+ {"$ref": "#/components/parameters/offset"}
+ {"$ref": "#/components/parameters/or"}
+ {"$ref": "#/components/parameters/and"}
+ {"$ref": "#/components/parameters/not.or"}
+ {"$ref": "#/components/parameters/not.and"}
+ {"$ref": "#/components/parameters/range"}
+ {"$ref": "#/components/parameters/preferGet"}
+(10 rows)
+
+-- Views
+-- GET operation object
+-- shows the table name as tag
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'tags');
+    jsonb_pretty    
+--------------------
+ [                 +
+     "big_products"+
+ ]
+(1 row)
+
+  
+-- uses a reference for the 200 HTTP code response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'responses'->'200');
+                      jsonb_pretty                      
+--------------------------------------------------------
+ {                                                     +
+     "$ref": "#/components/responses/get.big_products",+
+     "description": "OK"                               +
+ }
+(1 row)
+
+-- uses a reference for the 206 HTTP code response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'responses'->'206');
+                      jsonb_pretty                      
+--------------------------------------------------------
+ {                                                     +
+     "$ref": "#/components/responses/get.big_products",+
+     "description": "Partial Content"                  +
+ }
+(1 row)
+
+-- uses a reference for error responses
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'responses'->'default');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/responses/defaultError",+
+     "description": "Error"                        +
+ }
+(1 row)
+
+-- uses references for columns as query parameters
+select value 
+from jsonb_array_elements(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.big_products.%';
+                              value                              
+-----------------------------------------------------------------
+ {"$ref": "#/components/parameters/rowFilter.big_products.id"}
+ {"$ref": "#/components/parameters/rowFilter.big_products.code"}
+ {"$ref": "#/components/parameters/rowFilter.big_products.name"}
+ {"$ref": "#/components/parameters/rowFilter.big_products.size"}
+(4 rows)
+
+-- uses references for common parameters
+select value
+from jsonb_array_elements(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.big_products.%';
+                     value                     
+-----------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/order"}
+ {"$ref": "#/components/parameters/limit"}
+ {"$ref": "#/components/parameters/offset"}
+ {"$ref": "#/components/parameters/or"}
+ {"$ref": "#/components/parameters/and"}
+ {"$ref": "#/components/parameters/not.or"}
+ {"$ref": "#/components/parameters/not.and"}
+ {"$ref": "#/components/parameters/range"}
+ {"$ref": "#/components/parameters/preferGet"}
+(10 rows)
+
