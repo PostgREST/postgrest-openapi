@@ -72,6 +72,11 @@ CREATE TABLE test.openapi_types(
   "a_jsonb_arr" jsonb[]
 );
 
+create view test.big_products as
+  select id, code, name, size
+  from test.products
+  where size in ('L', 'XL');
+
 create schema private;
 
 create table private.secret_table (

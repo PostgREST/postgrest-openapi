@@ -20,3 +20,20 @@ $$
     '#/components/schemas/' || "schema"
   );
 $$;
+
+create or replace function oas_build_reference_to_parameters(parameter text)
+returns jsonb language sql immutable as
+$$
+  select oas_reference_object(
+    '#/components/parameters/' || parameter
+  );
+$$;
+
+create or replace function oas_build_reference_to_responses(response text, descrip text default null)
+returns jsonb language sql immutable as
+$$
+  select oas_reference_object(
+    ref := '#/components/responses/' || response,
+    description := descrip
+  );
+$$;

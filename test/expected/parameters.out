@@ -1,6 +1,6 @@
 -- shows common query parameters
 select *
-from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'parameters')
+from jsonb_each(get_postgrest_openapi_spec('{test}')->'components'->'parameters')
 where key in ('select', 'order', 'limit', 'offset', 'on_conflict', 'columns', 'or', 'and', 'not.or', 'not.and');
      key     |                                                                                     value                                                                                     
 -------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ where key in ('select', 'order', 'limit', 'offset', 'on_conflict', 'columns', 'o
 
 -- shows common headers
 select key, jsonb_pretty(value)
-from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'parameters')
+from jsonb_each(get_postgrest_openapi_spec('{test}')->'components'->'parameters')
 where key in ('preferGet', 'preferPost', 'preferPut', 'preferPatch', 'preferDelete', 'preferPostRpc', 'range');
       key      |                                 jsonb_pretty                                 
 ---------------+------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ where key in ('preferGet', 'preferPost', 'preferPut', 'preferPatch', 'preferDele
                |     "schema": {                                                             +
                |         "type": "string"                                                    +
                |     },                                                                      +
-               |     "example": "5-10",                                                      +
+               |     "example": "0-4",                                                       +
                |     "description": "For limits and pagination"                              +
                | }
  preferGet     | {                                                                           +
@@ -280,4 +280,90 @@ where key in ('preferGet', 'preferPost', 'preferPut', 'preferPatch', 'preferDele
                |     "description": "Specify a required or optional behavior for the request"+
                | }
 (7 rows)
+
+-- shows table columns as parameters
+select key, jsonb_pretty(value)
+from jsonb_each(get_postgrest_openapi_spec('{test}')->'components'->'parameters')
+where key like 'rowFilter.products.%';
+              key               |        jsonb_pretty        
+--------------------------------+----------------------------
+ rowFilter.products.id          | {                         +
+                                |     "in": "query",        +
+                                |     "name": "id",         +
+                                |     "schema": {           +
+                                |         "type": "string"  +
+                                |     }                     +
+                                | }
+ rowFilter.products.attr        | {                         +
+                                |     "in": "query",        +
+                                |     "name": "attr",       +
+                                |     "schema": {           +
+                                |         "type": "string"  +
+                                |     }                     +
+                                | }
+ rowFilter.products.code        | {                         +
+                                |     "in": "query",        +
+                                |     "name": "code",       +
+                                |     "schema": {           +
+                                |         "type": "string"  +
+                                |     }                     +
+                                | }
+ rowFilter.products.name        | {                         +
+                                |     "in": "query",        +
+                                |     "name": "name",       +
+                                |     "schema": {           +
+                                |         "type": "string"  +
+                                |     }                     +
+                                | }
+ rowFilter.products.size        | {                         +
+                                |     "in": "query",        +
+                                |     "name": "size",       +
+                                |     "schema": {           +
+                                |         "type": "string"  +
+                                |     }                     +
+                                | }
+ rowFilter.products.description | {                         +
+                                |     "in": "query",        +
+                                |     "name": "description",+
+                                |     "schema": {           +
+                                |         "type": "string"  +
+                                |     }                     +
+                                | }
+(6 rows)
+
+-- shows view columns as parameters
+select key, jsonb_pretty(value)
+from jsonb_each(get_postgrest_openapi_spec('{test}')->'components'->'parameters')
+where key like 'rowFilter.big_products.%';
+             key             |       jsonb_pretty       
+-----------------------------+--------------------------
+ rowFilter.big_products.id   | {                       +
+                             |     "in": "query",      +
+                             |     "name": "id",       +
+                             |     "schema": {         +
+                             |         "type": "string"+
+                             |     }                   +
+                             | }
+ rowFilter.big_products.code | {                       +
+                             |     "in": "query",      +
+                             |     "name": "code",     +
+                             |     "schema": {         +
+                             |         "type": "string"+
+                             |     }                   +
+                             | }
+ rowFilter.big_products.name | {                       +
+                             |     "in": "query",      +
+                             |     "name": "name",     +
+                             |     "schema": {         +
+                             |         "type": "string"+
+                             |     }                   +
+                             | }
+ rowFilter.big_products.size | {                       +
+                             |     "in": "query",      +
+                             |     "name": "size",     +
+                             |     "schema": {         +
+                             |         "type": "string"+
+                             |     }                   +
+                             | }
+(4 rows)
 

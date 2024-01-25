@@ -48,5 +48,5 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'schemas
 
 -- defines all the available prefer headers
 select key, jsonb_pretty(value)
-from jsonb_each(get_postgrest_openapi_spec('{public}')->'components'->'schemas')
+from jsonb_each(get_postgrest_openapi_spec('{test}')->'components'->'schemas')
 where key like 'header.prefer%';

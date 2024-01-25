@@ -1,0 +1,129 @@
+-- defines a default error response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'responses'->'defaultError');
+                jsonb_pretty                
+--------------------------------------------
+ {                                         +
+     "content": {                          +
+         "application/json": {             +
+             "schema": {                   +
+                 "type": "object",         +
+                 "properties": {           +
+                     "code": {             +
+                         "type": "string"  +
+                     },                    +
+                     "hint": {             +
+                         "type": "string"  +
+                     },                    +
+                     "details": {          +
+                         "type": "string"  +
+                     },                    +
+                     "message": {          +
+                         "type": "string"  +
+                     }                     +
+                 }                         +
+             }                             +
+         }                                 +
+     },                                    +
+     "description": "Default error reponse"+
+ }
+(1 row)
+
+-- Tables
+-- GET operation object
+-- defines an application/json response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'responses'->'get.products'->'content'->'application/json');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ {                                                  +
+     "schema": {                                    +
+         "type": "array",                           +
+         "items": {                                 +
+             "$ref": "#/components/schemas/products"+
+         }                                          +
+     }                                              +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'responses'->'get.products'->'content'->'application/vnd.pgrst.object+json');
+                  jsonb_pretty                   
+-------------------------------------------------
+ {                                              +
+     "schema": {                                +
+         "$ref": "#/components/schemas/products"+
+     }                                          +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json;nulls=stripped response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'responses'->'get.products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+                  jsonb_pretty                   
+-------------------------------------------------
+ {                                              +
+     "schema": {                                +
+         "$ref": "#/components/schemas/products"+
+     }                                          +
+ }
+(1 row)
+
+-- defines a text/csv response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'responses'->'get.products'->'content'->'text/csv');
+       jsonb_pretty        
+---------------------------
+ {                        +
+     "schema": {          +
+         "type": "string",+
+         "format": "csv"  +
+     }                    +
+ }
+(1 row)
+
+-- Views
+-- GET operation object
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'responses'->'get.big_products'->'content'->'application/json');
+                      jsonb_pretty                       
+---------------------------------------------------------
+ {                                                      +
+     "schema": {                                        +
+         "type": "array",                               +
+         "items": {                                     +
+             "$ref": "#/components/schemas/big_products"+
+         }                                              +
+     }                                                  +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'responses'->'get.big_products'->'content'->'application/vnd.pgrst.object+json');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ {                                                  +
+     "schema": {                                    +
+         "$ref": "#/components/schemas/big_products"+
+     }                                              +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json;nulls=stripped response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'responses'->'get.big_products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ {                                                  +
+     "schema": {                                    +
+         "$ref": "#/components/schemas/big_products"+
+     }                                              +
+ }
+(1 row)
+
+-- defines a text/csv response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'responses'->'get.big_products'->'content'->'text/csv');
+       jsonb_pretty        
+---------------------------
+ {                        +
+     "schema": {          +
+         "type": "string",+
+         "format": "csv"  +
+     }                    +
+ }
+(1 row)
+
