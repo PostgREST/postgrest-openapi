@@ -8,8 +8,8 @@ CALL set_server_from_configuration();
 SELECT current_setting('pgrst.db_schemas', TRUE);
 SELECT string_to_array(current_setting('pgrst.db_schemas', TRUE), ',');
 
--- Tests get_postgrest_openapi_spec with parameters
-SELECT count(get_postgrest_openapi_spec(
+-- Tests postgrest_openapi_spec with parameters
+SELECT count(postgrest_openapi_spec(
   schemas := string_to_array(current_setting('pgrst.db_schemas', TRUE), ','),
   postgrest_version := current_setting('pgrst.version', TRUE),
   proa_version := '0.1'::text, -- TODO: needs to be updated; put into config, and have Makefile update

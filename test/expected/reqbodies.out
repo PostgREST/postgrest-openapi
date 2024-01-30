@@ -1,6 +1,6 @@
 -- Tables
 -- defines an application/json request body
-select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'products'->'content'->'application/json');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'products'->'content'->'application/json');
                         jsonb_pretty                         
 -------------------------------------------------------------
  {                                                          +
@@ -21,7 +21,7 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'request
 (1 row)
 
 -- defines an application/x-www-form-urlencoded request body
-select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'products'->'content'->'application/x-www-form-urlencoded');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'products'->'content'->'application/x-www-form-urlencoded');
                   jsonb_pretty                   
 -------------------------------------------------
  {                                              +
@@ -32,7 +32,7 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'request
 (1 row)
 
 -- defines a text/csv request body
-select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'products'->'content'->'text/csv');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'products'->'content'->'text/csv');
        jsonb_pretty        
 ---------------------------
  {                        +
@@ -45,7 +45,7 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'request
 
 -- Views
 -- defines an application/json request body
-select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'big_products'->'content'->'application/json');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'big_products'->'content'->'application/json');
                           jsonb_pretty                           
 -----------------------------------------------------------------
  {                                                              +
@@ -66,7 +66,7 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'request
 (1 row)
 
 -- defines an application/x-www-form-urlencoded request body
-select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'big_products'->'content'->'application/x-www-form-urlencoded');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'big_products'->'content'->'application/x-www-form-urlencoded');
                     jsonb_pretty                     
 -----------------------------------------------------
  {                                                  +
@@ -77,7 +77,7 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'request
 (1 row)
 
 -- defines a text/csv request body
-select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'big_products'->'content'->'text/csv');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'big_products'->'content'->'text/csv');
        jsonb_pretty        
 ---------------------------
  {                        +
@@ -89,7 +89,7 @@ select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'request
 (1 row)
 
 -- does not define a request body for non auto-updatable views
-select get_postgrest_openapi_spec('{test}')->'components'->'requestBodies' ? 'non_auto_updatable' as value;
+select postgrest_openapi_spec('{test}')->'components'->'requestBodies' ? 'non_auto_updatable' as value;
  value 
 -------
  f
