@@ -77,6 +77,9 @@ create view test.big_products as
   from test.products
   where size in ('L', 'XL');
 
+create view test.non_auto_updatable as
+  select 'this view is not auto updatable' as description;
+
 create schema private;
 
 create table private.secret_table (

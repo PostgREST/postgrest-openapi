@@ -1,0 +1,97 @@
+-- Tables
+-- defines an application/json request body
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'products'->'content'->'application/json');
+                        jsonb_pretty                         
+-------------------------------------------------------------
+ {                                                          +
+     "schema": {                                            +
+         "oneOf": [                                         +
+             {                                              +
+                 "$ref": "#/components/schemas/products"    +
+             },                                             +
+             {                                              +
+                 "type": "array",                           +
+                 "items": {                                 +
+                     "$ref": "#/components/schemas/products"+
+                 }                                          +
+             }                                              +
+         ]                                                  +
+     }                                                      +
+ }
+(1 row)
+
+-- defines an application/x-www-form-urlencoded request body
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'products'->'content'->'application/x-www-form-urlencoded');
+                  jsonb_pretty                   
+-------------------------------------------------
+ {                                              +
+     "schema": {                                +
+         "$ref": "#/components/schemas/products"+
+     }                                          +
+ }
+(1 row)
+
+-- defines a text/csv request body
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'products'->'content'->'text/csv');
+       jsonb_pretty        
+---------------------------
+ {                        +
+     "schema": {          +
+         "type": "string",+
+         "format": "csv"  +
+     }                    +
+ }
+(1 row)
+
+-- Views
+-- defines an application/json request body
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'big_products'->'content'->'application/json');
+                          jsonb_pretty                           
+-----------------------------------------------------------------
+ {                                                              +
+     "schema": {                                                +
+         "oneOf": [                                             +
+             {                                                  +
+                 "$ref": "#/components/schemas/big_products"    +
+             },                                                 +
+             {                                                  +
+                 "type": "array",                               +
+                 "items": {                                     +
+                     "$ref": "#/components/schemas/big_products"+
+                 }                                              +
+             }                                                  +
+         ]                                                      +
+     }                                                          +
+ }
+(1 row)
+
+-- defines an application/x-www-form-urlencoded request body
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'big_products'->'content'->'application/x-www-form-urlencoded');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ {                                                  +
+     "schema": {                                    +
+         "$ref": "#/components/schemas/big_products"+
+     }                                              +
+ }
+(1 row)
+
+-- defines a text/csv request body
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'components'->'requestBodies'->'big_products'->'content'->'text/csv');
+       jsonb_pretty        
+---------------------------
+ {                        +
+     "schema": {          +
+         "type": "string",+
+         "format": "csv"  +
+     }                    +
+ }
+(1 row)
+
+-- does not define a request body for non auto-updatable views
+select get_postgrest_openapi_spec('{test}')->'components'->'requestBodies' ? 'non_auto_updatable' as value;
+ value 
+-------
+ f
+(1 row)
+

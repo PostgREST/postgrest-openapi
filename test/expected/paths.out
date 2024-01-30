@@ -103,6 +103,54 @@ where value->>'$ref' not like '#/components/parameters/rowFilter.products.%';
  {"$ref": "#/components/parameters/preferGet"}
 (10 rows)
 
+-- POST operation object
+-- shows the table name as tag
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'tags');
+  jsonb_pretty  
+----------------
+ [             +
+     "products"+
+ ]
+(1 row)
+
+-- uses a reference for the 201 HTTP code response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'responses'->'201');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ {                                                  +
+     "$ref": "#/components/responses/post.products",+
+     "description": "Created"                       +
+ }
+(1 row)
+
+-- uses a reference for error responses
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'responses'->'default');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/responses/defaultError",+
+     "description": "Error"                        +
+ }
+(1 row)
+
+-- uses a reference for request body
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'requestBody'->'$ref');
+             jsonb_pretty              
+---------------------------------------
+ "#/components/requestBodies/products"
+(1 row)
+
+-- uses references for common parameters
+select value
+from jsonb_array_elements(get_postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/%';
+                     value                      
+------------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/columns"}
+ {"$ref": "#/components/parameters/preferPost"}
+(3 rows)
+
 -- Views
 -- GET operation object
 -- shows the table name as tag
@@ -174,4 +222,66 @@ where value->>'$ref' not like '#/components/parameters/rowFilter.big_products.%'
  {"$ref": "#/components/parameters/range"}
  {"$ref": "#/components/parameters/preferGet"}
 (10 rows)
+
+-- shows a GET operation object for non auto-updatable views
+select get_postgrest_openapi_spec('{test}')->'paths'->'/non_auto_updatable' ? 'get' as value;
+ value 
+-------
+ t
+(1 row)
+
+-- POST operation object
+-- shows the table name as tag
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'tags');
+    jsonb_pretty    
+--------------------
+ [                 +
+     "big_products"+
+ ]
+(1 row)
+
+-- uses a reference for the 201 HTTP code response
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'responses'->'201');
+                      jsonb_pretty                       
+---------------------------------------------------------
+ {                                                      +
+     "$ref": "#/components/responses/post.big_products",+
+     "description": "Created"                           +
+ }
+(1 row)
+
+-- uses a reference for error responses
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'responses'->'default');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/responses/defaultError",+
+     "description": "Error"                        +
+ }
+(1 row)
+
+-- uses a reference for request body
+select jsonb_pretty(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'requestBody'->'$ref');
+               jsonb_pretty                
+-------------------------------------------
+ "#/components/requestBodies/big_products"
+(1 row)
+
+-- uses references for common parameters
+select value
+from jsonb_array_elements(get_postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/%';
+                     value                      
+------------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/columns"}
+ {"$ref": "#/components/parameters/preferPost"}
+(3 rows)
+
+-- does not show a POST operation object for non auto-updatable views
+select get_postgrest_openapi_spec('{test}')->'paths'->'/non_auto_updatable' ? 'post' as value;
+ value 
+-------
+ f
+(1 row)
 
