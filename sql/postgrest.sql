@@ -17,7 +17,7 @@ returns table (
   required_cols text[],
   all_cols text[],
   columns jsonb
-) language sql as
+) language sql stable as
 $$
 WITH
   columns AS (

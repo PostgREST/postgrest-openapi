@@ -29,6 +29,14 @@ $$
   );
 $$;
 
+create or replace function oas_build_reference_to_request_bodies(req_body text)
+returns jsonb language sql immutable as
+$$
+  select oas_reference_object(
+    ref := '#/components/requestBodies/' || req_body
+  );
+$$;
+
 create or replace function oas_build_reference_to_responses(response text, descrip text default null)
 returns jsonb language sql immutable as
 $$

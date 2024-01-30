@@ -362,3 +362,17 @@ $$
     'encoding', encoding
   )
 $$;
+
+create or replace function oas_request_body_object(
+  content jsonb,
+  description text default null,
+  required boolean default null
+)
+returns jsonb language sql as
+$$
+  select json_build_object(
+    'content', content,
+    'description', description,
+    'required', required
+  )
+$$;

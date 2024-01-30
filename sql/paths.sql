@@ -40,14 +40,33 @@ from (
           'default',
           oas_build_reference_to_responses('defaultError', 'Error')
         )
-      )
+      ),
+      post :=
+        case when insertable then
+          oas_operation_object(
+            description := table_description,
+            tags := array[table_name],
+            requestBody := oas_build_reference_to_request_bodies(table_name),
+            parameters := jsonb_build_array(
+              oas_build_reference_to_parameters('select'),
+              oas_build_reference_to_parameters('columns'),
+              oas_build_reference_to_parameters('preferPost')
+            ),
+            responses := jsonb_build_object(
+              '201',
+              oas_build_reference_to_responses('post.' || table_name, 'Created'),
+              'default',
+              oas_build_reference_to_responses('defaultError', 'Error')
+            )
+          )
+        end
     ) as oas_path_item
   from (
-   select table_schema, table_name, table_description, unnest(all_cols) as column_name
+   select table_schema, table_name, table_description, insertable, unnest(all_cols) as column_name
    from postgrest_get_all_tables(schemas)
   ) _
   where table_schema = any(schemas)
-  group by table_schema, table_name, table_description
+  group by table_schema, table_name, table_description, insertable
 ) x;
 $$;
 
