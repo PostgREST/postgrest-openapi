@@ -6,6 +6,7 @@ $$
 select oas_components_object(
   schemas := oas_build_component_schemas(schemas),
   parameters := oas_build_component_parameters(schemas),
+  requestBodies := oas_build_request_bodies(schemas),
   responses := oas_build_response_objects(schemas),
   securitySchemes := oas_build_component_security_schemes()
 )
@@ -534,11 +535,12 @@ $$;
 create or replace function oas_build_response_objects_from_tables(schemas text[])
 returns jsonb language sql as
 $$
-select jsonb_object_agg(x.resp_name, x.resp_object)
+select jsonb_object_agg(x.get, x.get_response) ||
+       jsonb_object_agg(x.post, x.post_response)
 from (
-  select 'get.' || table_name as resp_name,
+  select 'get.' || table_name as get,
     oas_response_object(
-      description := 'Get media types for ' || table_name,
+      description := 'GET media types for ' || table_name,
       content := jsonb_build_object(
         'application/json',
         oas_media_type_object(
@@ -563,10 +565,61 @@ from (
           )
         )
       )
-    ) as resp_object
+    ) as get_response,
+    'post.' || table_name as post,
+    case when insertable then
+      oas_response_object(
+        description := 'POST media types for ' || table_name,
+        content := jsonb_build_object(
+          'application/json',
+          oas_media_type_object(
+            schema := oas_schema_object(
+              oneof := jsonb_build_array(
+                oas_schema_object(
+                  type := 'array',
+                  items := oas_build_reference_to_schemas(table_name)
+                ),
+                oas_schema_object(
+                  type := 'string'
+                )
+              )
+            )
+          ),
+          'application/vnd.pgrst.object+json',
+          oas_media_type_object(
+            schema := oas_schema_object(
+              oneOf := jsonb_build_array(
+                oas_build_reference_to_schemas(table_name),
+                oas_schema_object(
+                    type := 'string'
+                  )
+              )
+            )
+          ),
+          'application/vnd.pgrst.object+json;nulls=stripped',
+          oas_media_type_object(
+            schema := oas_schema_object(
+              oneOf := jsonb_build_array(
+                oas_build_reference_to_schemas(table_name),
+                oas_schema_object(
+                    type := 'string'
+                  )
+              )
+            )
+          ),
+          'text/csv',
+          oas_media_type_object(
+            schema := oas_schema_object(
+              type := 'string',
+              format := 'csv'
+            )
+          )
+        )
+      )
+    end as post_response
   from postgrest_get_all_tables(schemas)
   where table_schema = any(schemas)
-) x;
+) as x
 $$;
 
 create or replace function oas_build_response_objects_common()
@@ -592,6 +645,55 @@ select jsonb_build_object(
     )
   )
 );
+$$;
+
+-- Request bodies
+
+create or replace function oas_build_request_bodies(schemas text[])
+returns jsonb language sql as
+$$
+select oas_build_request_bodies_from_tables(schemas);
+$$;
+
+create or replace function oas_build_request_bodies_from_tables(schemas text[])
+returns jsonb language sql as
+$$
+select jsonb_object_agg(x.table_name, x.oas_req_body)
+from (
+  select
+    table_name,
+    oas_request_body_object(
+      description := table_name,
+      content := jsonb_build_object(
+        'application/json',
+        oas_media_type_object(
+          "schema" := oas_schema_object(
+            oneOf := jsonb_build_array(
+              oas_build_reference_to_schemas(table_name),
+              oas_schema_object(
+                type := 'array',
+                items := oas_build_reference_to_schemas(table_name)
+              )
+            )
+          )
+        ),
+        'application/x-www-form-urlencoded',
+        oas_media_type_object(
+          "schema" := oas_build_reference_to_schemas(table_name)
+        ),
+        'text/csv',
+        oas_media_type_object(
+          "schema" := oas_schema_object(
+            type := 'string',
+            format := 'csv'
+          )
+        )
+      )
+    ) as oas_req_body
+  from postgrest_get_all_tables(schemas)
+  where table_schema = any(schemas)
+    and insertable
+) as x;
 $$;
 
 -- Security Schemes
