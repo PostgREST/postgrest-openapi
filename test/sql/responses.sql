@@ -1,6 +1,9 @@
 -- defines a default error response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'defaultError');
 
+-- defines an empty response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'empty');
+
 -- Tables
 -- Non-empty response body
 

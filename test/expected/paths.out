@@ -151,6 +151,77 @@ where value->>'$ref' like '#/components/parameters/%';
  {"$ref": "#/components/parameters/preferPost"}
 (3 rows)
 
+-- PATCH operation object
+-- shows the table name as tag
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'tags');
+  jsonb_pretty  
+----------------
+ [             +
+     "products"+
+ ]
+(1 row)
+
+-- uses a reference for the 200 HTTP code response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'responses'->'200');
+                      jsonb_pretty                       
+---------------------------------------------------------
+ {                                                      +
+     "$ref": "#/components/responses/notEmpty.products",+
+     "description": "OK"                                +
+ }
+(1 row)
+
+-- uses a reference for the 204 HTTP code response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'responses'->'204');
+                jsonb_pretty                 
+---------------------------------------------
+ {                                          +
+     "$ref": "#/components/responses/empty",+
+     "description": "No Content"            +
+ }
+(1 row)
+
+-- uses a reference for error responses
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'responses'->'default');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/responses/defaultError",+
+     "description": "Error"                        +
+ }
+(1 row)
+
+-- uses references for columns as query parameters
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.products.%';
+                               value                                
+--------------------------------------------------------------------
+ {"$ref": "#/components/parameters/rowFilter.products.id"}
+ {"$ref": "#/components/parameters/rowFilter.products.code"}
+ {"$ref": "#/components/parameters/rowFilter.products.name"}
+ {"$ref": "#/components/parameters/rowFilter.products.description"}
+ {"$ref": "#/components/parameters/rowFilter.products.attr"}
+ {"$ref": "#/components/parameters/rowFilter.products.size"}
+(6 rows)
+
+-- uses references for common parameters
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.products.%';
+                      value                      
+-------------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/columns"}
+ {"$ref": "#/components/parameters/order"}
+ {"$ref": "#/components/parameters/limit"}
+ {"$ref": "#/components/parameters/or"}
+ {"$ref": "#/components/parameters/and"}
+ {"$ref": "#/components/parameters/not.or"}
+ {"$ref": "#/components/parameters/not.and"}
+ {"$ref": "#/components/parameters/preferPatch"}
+(9 rows)
+
 -- Views
 -- GET operation object
 -- shows the table name as tag
@@ -280,6 +351,82 @@ where value->>'$ref' like '#/components/parameters/%';
 
 -- does not show a POST operation object for non auto-updatable views
 select postgrest_openapi_spec('{test}')->'paths'->'/non_auto_updatable' ? 'post' as value;
+ value 
+-------
+ f
+(1 row)
+
+-- PATCH operation object
+-- shows the table name as tag
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'tags');
+    jsonb_pretty    
+--------------------
+ [                 +
+     "big_products"+
+ ]
+(1 row)
+
+-- uses a reference for the 200 HTTP code response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'responses'->'200');
+                        jsonb_pretty                         
+-------------------------------------------------------------
+ {                                                          +
+     "$ref": "#/components/responses/notEmpty.big_products",+
+     "description": "OK"                                    +
+ }
+(1 row)
+
+-- uses a reference for the 204 HTTP code response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'responses'->'204');
+                jsonb_pretty                 
+---------------------------------------------
+ {                                          +
+     "$ref": "#/components/responses/empty",+
+     "description": "No Content"            +
+ }
+(1 row)
+
+-- uses a reference for error responses
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'responses'->'default');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/responses/defaultError",+
+     "description": "Error"                        +
+ }
+(1 row)
+
+-- uses references for columns as query parameters
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.big_products.%';
+                              value                              
+-----------------------------------------------------------------
+ {"$ref": "#/components/parameters/rowFilter.big_products.id"}
+ {"$ref": "#/components/parameters/rowFilter.big_products.code"}
+ {"$ref": "#/components/parameters/rowFilter.big_products.name"}
+ {"$ref": "#/components/parameters/rowFilter.big_products.size"}
+(4 rows)
+
+-- uses references for common parameters
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.big_products.%';
+                      value                      
+-------------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/columns"}
+ {"$ref": "#/components/parameters/order"}
+ {"$ref": "#/components/parameters/limit"}
+ {"$ref": "#/components/parameters/or"}
+ {"$ref": "#/components/parameters/and"}
+ {"$ref": "#/components/parameters/not.or"}
+ {"$ref": "#/components/parameters/not.and"}
+ {"$ref": "#/components/parameters/preferPatch"}
+(9 rows)
+
+-- does not show a PATCH operation object for non auto-updatable views
+select postgrest_openapi_spec('{test}')->'paths'->'/non_auto_updatable' ? 'patch' as value;
  value 
 -------
  f
