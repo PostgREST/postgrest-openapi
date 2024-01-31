@@ -15,7 +15,7 @@ SQL functions to build the OpenAPI output of a PostgREST instance.
     - [ ] Tables and Views
       - [x] GET
       - [x] POST
-      - [ ] PUT
+      - [x] PATCH
       - [ ] DELETE
     - [ ] Functions
       - [ ] GET
