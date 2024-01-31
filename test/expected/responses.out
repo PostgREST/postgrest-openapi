@@ -28,10 +28,19 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
  }
 (1 row)
 
+-- defines an empty response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'empty');
+                          jsonb_pretty                           
+-----------------------------------------------------------------
+ {                                                              +
+     "description": "No media types when response body is empty"+
+ }
+(1 row)
+
 -- Tables
--- GET operation object
+-- Non-empty response body
 -- defines an application/json response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'get.products'->'content'->'application/json');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'notEmpty.products'->'content'->'application/json');
                     jsonb_pretty                     
 -----------------------------------------------------
  {                                                  +
@@ -45,7 +54,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines an application/vnd.pgrst.object+json response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'get.products'->'content'->'application/vnd.pgrst.object+json');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'notEmpty.products'->'content'->'application/vnd.pgrst.object+json');
                   jsonb_pretty                   
 -------------------------------------------------
  {                                              +
@@ -56,7 +65,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines an application/vnd.pgrst.object+json;nulls=stripped response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'get.products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'notEmpty.products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
                   jsonb_pretty                   
 -------------------------------------------------
  {                                              +
@@ -67,7 +76,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines a text/csv response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'get.products'->'content'->'text/csv');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'notEmpty.products'->'content'->'text/csv');
        jsonb_pretty        
 ---------------------------
  {                        +
@@ -78,9 +87,9 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
  }
 (1 row)
 
--- POST operation object
+-- Empty or non-empty response body
 -- defines an application/json response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'post.products'->'content'->'application/json');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'mayBeEmpty.products'->'content'->'application/json');
                         jsonb_pretty                         
 -------------------------------------------------------------
  {                                                          +
@@ -101,7 +110,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines an application/vnd.pgrst.object+json response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'post.products'->'content'->'application/vnd.pgrst.object+json');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'mayBeEmpty.products'->'content'->'application/vnd.pgrst.object+json');
                       jsonb_pretty                       
 ---------------------------------------------------------
  {                                                      +
@@ -119,7 +128,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines an application/vnd.pgrst.object+json;nulls=stripped response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'post.products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'mayBeEmpty.products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
                       jsonb_pretty                       
 ---------------------------------------------------------
  {                                                      +
@@ -137,7 +146,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines a text/csv response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'post.products'->'content'->'text/csv');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'mayBeEmpty.products'->'content'->'text/csv');
        jsonb_pretty        
 ---------------------------
  {                        +
@@ -149,8 +158,8 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- Views
--- GET operation object
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'get.big_products'->'content'->'application/json');
+-- Non-empty response body
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'notEmpty.big_products'->'content'->'application/json');
                       jsonb_pretty                       
 ---------------------------------------------------------
  {                                                      +
@@ -164,7 +173,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines an application/vnd.pgrst.object+json response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'get.big_products'->'content'->'application/vnd.pgrst.object+json');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'notEmpty.big_products'->'content'->'application/vnd.pgrst.object+json');
                     jsonb_pretty                     
 -----------------------------------------------------
  {                                                  +
@@ -175,7 +184,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines an application/vnd.pgrst.object+json;nulls=stripped response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'get.big_products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'notEmpty.big_products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
                     jsonb_pretty                     
 -----------------------------------------------------
  {                                                  +
@@ -186,7 +195,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines a text/csv response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'get.big_products'->'content'->'text/csv');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'notEmpty.big_products'->'content'->'text/csv');
        jsonb_pretty        
 ---------------------------
  {                        +
@@ -197,16 +206,16 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
  }
 (1 row)
 
--- defines a GET operation object for non auto-updatable views
-select postgrest_openapi_spec('{test}')->'components'->'responses' ? 'get.non_auto_updatable' as value;
+-- defines a non-empty response body for non auto-updatable views
+select postgrest_openapi_spec('{test}')->'components'->'responses' ? 'notEmpty.non_auto_updatable' as value;
  value 
 -------
  t
 (1 row)
 
--- POST operation object
+-- Empty or non-empty response body
 -- defines an application/json response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'post.big_products'->'content'->'application/json');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'mayBeEmpty.big_products'->'content'->'application/json');
                           jsonb_pretty                           
 -----------------------------------------------------------------
  {                                                              +
@@ -227,7 +236,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines an application/vnd.pgrst.object+json response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'post.big_products'->'content'->'application/vnd.pgrst.object+json');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'mayBeEmpty.big_products'->'content'->'application/vnd.pgrst.object+json');
                         jsonb_pretty                         
 -------------------------------------------------------------
  {                                                          +
@@ -245,7 +254,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines an application/vnd.pgrst.object+json;nulls=stripped response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'post.big_products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'mayBeEmpty.big_products'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
                         jsonb_pretty                         
 -------------------------------------------------------------
  {                                                          +
@@ -263,7 +272,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
 (1 row)
 
 -- defines a text/csv response
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'post.big_products'->'content'->'text/csv');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'mayBeEmpty.big_products'->'content'->'text/csv');
        jsonb_pretty        
 ---------------------------
  {                        +
@@ -274,8 +283,8 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'-
  }
 (1 row)
 
--- does not define a POST operation object for non auto-updatable views
-select postgrest_openapi_spec('{test}')->'components'->'responses' ? 'post.non_auto_updatable' as value;
+-- does not define an empty or non-empty response body for non auto-updatable views
+select postgrest_openapi_spec('{test}')->'components'->'responses' ? 'mayBeEmpty.non_auto_updatable' as value;
  value 
 -------
  f

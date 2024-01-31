@@ -34,9 +34,9 @@ from (
         ),
         responses := jsonb_build_object(
           '200',
-          oas_build_reference_to_responses('get.' || table_name, 'OK'),
+          oas_build_reference_to_responses('notEmpty.' || table_name, 'OK'),
           '206',
-          oas_build_reference_to_responses('get.' || table_name, 'Partial Content'),
+          oas_build_reference_to_responses('notEmpty.' || table_name, 'Partial Content'),
           'default',
           oas_build_reference_to_responses('defaultError', 'Error')
         )
@@ -54,7 +54,37 @@ from (
             ),
             responses := jsonb_build_object(
               '201',
-              oas_build_reference_to_responses('post.' || table_name, 'Created'),
+              oas_build_reference_to_responses('mayBeEmpty.' || table_name, 'Created'),
+              'default',
+              oas_build_reference_to_responses('defaultError', 'Error')
+            )
+          )
+        end,
+      patch :=
+        case when updatable then
+          oas_operation_object(
+            description := table_description,
+            tags := array[table_name],
+            requestBody := oas_build_reference_to_request_bodies(table_name),
+            parameters := jsonb_agg(
+              oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_name, column_name))
+            ) ||
+            jsonb_build_array(
+              oas_build_reference_to_parameters('select'),
+              oas_build_reference_to_parameters('columns'),
+              oas_build_reference_to_parameters('order'),
+              oas_build_reference_to_parameters('limit'),
+              oas_build_reference_to_parameters('or'),
+              oas_build_reference_to_parameters('and'),
+              oas_build_reference_to_parameters('not.or'),
+              oas_build_reference_to_parameters('not.and'),
+              oas_build_reference_to_parameters('preferPatch')
+            ),
+            responses := jsonb_build_object(
+              '200',
+              oas_build_reference_to_responses('notEmpty.' || table_name, 'OK'),
+              '204',
+              oas_build_reference_to_responses('empty', 'No Content'),
               'default',
               oas_build_reference_to_responses('defaultError', 'Error')
             )
@@ -62,11 +92,11 @@ from (
         end
     ) as oas_path_item
   from (
-   select table_schema, table_name, table_description, insertable, unnest(all_cols) as column_name
+   select table_schema, table_name, table_description, insertable, updatable, unnest(all_cols) as column_name
    from postgrest_get_all_tables(schemas)
   ) _
   where table_schema = any(schemas)
-  group by table_schema, table_name, table_description, insertable
+  group by table_schema, table_name, table_description, insertable, updatable
 ) x;
 $$;
 
