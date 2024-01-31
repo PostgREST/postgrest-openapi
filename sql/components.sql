@@ -643,6 +643,11 @@ select jsonb_build_object(
         )
       )
     )
+  ),
+  'empty',
+  oas_response_object(
+    description := 'No media types when response body is empty'
+    -- Does not specify a "content": https://swagger.io/docs/specification/describing-responses/#empty
   )
 );
 $$;
