@@ -12,11 +12,11 @@ SQL functions to build the OpenAPI output of a PostgREST instance.
     - [x] Security scheme (security definitions in OAS 2.0)
     - [ ] Parameters
   - [ ] Paths object
-    - [ ] Tables and Views
+    - [x] Tables and Views
       - [x] GET
       - [x] POST
       - [x] PATCH
-      - [ ] DELETE
+      - [x] DELETE
     - [ ] Functions
       - [ ] GET
       - [ ] POST

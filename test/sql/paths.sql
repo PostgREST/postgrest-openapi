@@ -59,6 +59,9 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'pat
 -- uses a reference for error responses
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'responses'->'default');
 
+-- uses a reference for request body
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'requestBody'->'$ref');
+
 -- uses references for columns as query parameters
 select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'parameters')
@@ -67,6 +70,30 @@ where value->>'$ref' like '#/components/parameters/rowFilter.products.%';
 -- uses references for common parameters
 select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.products.%';
+
+-- DELETE operation object
+
+-- shows the table name as tag
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'tags');
+
+-- uses a reference for the 200 HTTP code response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'responses'->'200');
+
+-- uses a reference for the 204 HTTP code response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'responses'->'204');
+
+-- uses a reference for error responses
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'responses'->'default');
+
+-- uses references for columns as query parameters
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.products.%';
+
+-- uses references for common parameters
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'parameters')
 where value->>'$ref' not like '#/components/parameters/rowFilter.products.%';
 
 -- Views
@@ -133,6 +160,9 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
 -- uses a reference for error responses
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'responses'->'default');
 
+-- uses a reference for request body
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'requestBody'->'$ref');
+
 -- uses references for columns as query parameters
 select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'parameters')
@@ -145,3 +175,30 @@ where value->>'$ref' not like '#/components/parameters/rowFilter.big_products.%'
 
 -- does not show a PATCH operation object for non auto-updatable views
 select postgrest_openapi_spec('{test}')->'paths'->'/non_auto_updatable' ? 'patch' as value;
+
+-- DELETE operation object
+
+-- shows the table name as tag
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'tags');
+
+-- uses a reference for the 200 HTTP code response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'responses'->'200');
+
+-- uses a reference for the 204 HTTP code response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'responses'->'204');
+
+-- uses a reference for error responses
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'responses'->'default');
+
+-- uses references for columns as query parameters
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.big_products.%';
+
+-- uses references for common parameters
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.big_products.%';
+
+-- does not show a DELETE operation object for non auto-updatable views
+select postgrest_openapi_spec('{test}')->'paths'->'/non_auto_updatable' ? 'delete' as value;
