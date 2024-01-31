@@ -59,6 +59,9 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'pat
 -- uses a reference for error responses
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'responses'->'default');
 
+-- uses a reference for request body
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'requestBody'->'$ref');
+
 -- uses references for columns as query parameters
 select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'parameters')
@@ -156,6 +159,9 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
 
 -- uses a reference for error responses
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'responses'->'default');
+
+-- uses a reference for request body
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'requestBody'->'$ref');
 
 -- uses references for columns as query parameters
 select value

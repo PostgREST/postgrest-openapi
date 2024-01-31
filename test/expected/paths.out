@@ -191,6 +191,13 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'pat
  }
 (1 row)
 
+-- uses a reference for request body
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'requestBody'->'$ref');
+             jsonb_pretty              
+---------------------------------------
+ "#/components/requestBodies/products"
+(1 row)
+
 -- uses references for columns as query parameters
 select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'parameters')
@@ -464,6 +471,13 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
      "$ref": "#/components/responses/defaultError",+
      "description": "Error"                        +
  }
+(1 row)
+
+-- uses a reference for request body
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'requestBody'->'$ref');
+               jsonb_pretty                
+-------------------------------------------
+ "#/components/requestBodies/big_products"
 (1 row)
 
 -- uses references for columns as query parameters
