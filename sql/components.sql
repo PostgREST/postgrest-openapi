@@ -1,7 +1,7 @@
 -- Functions to build the Components Object of the OAS document
 
 create or replace function oas_build_components(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select oas_components_object(
   schemas := oas_build_component_schemas(schemas),
@@ -15,7 +15,7 @@ $$;
 -- Schemas
 
 create or replace function oas_build_component_schemas(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select oas_build_component_schemas_from_tables(schemas) ||
          oas_build_component_schemas_from_composite_types(schemas) ||
@@ -23,7 +23,7 @@ $$
 $$;
 
 create or replace function oas_build_component_schemas_from_tables(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_object_agg(x.table_name, x.oas_schema)
 from (
@@ -40,7 +40,7 @@ from (
 $$;
 
 create or replace function oas_build_component_schemas_from_composite_types(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 SELECT coalesce(jsonb_object_agg(x.ct_name, x.oas_schema), '{}')
 FROM (
@@ -55,7 +55,7 @@ FROM (
 $$;
 
 create or replace function oas_build_component_schemas_headers()
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_build_object(
   'header.preferParams',
@@ -174,7 +174,7 @@ $$;
 -- Parameters
 
 create or replace function oas_build_component_parameters(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select oas_build_component_parameters_query_params_from_tables(schemas) ||
          oas_build_component_parameters_query_params_common() ||
@@ -182,7 +182,7 @@ $$
 $$;
 
 create or replace function oas_build_component_parameters_query_params_from_tables(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_object_agg(x.param_name, x.param_schema)
 from (
@@ -203,7 +203,7 @@ from (
 $$;
 
 create or replace function oas_build_component_parameters_query_params_common()
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_object_agg(name, param_object) from unnest(
   array['select','order', 'limit', 'offset', 'on_conflict', 'columns', 'or', 'and', 'not.or', 'not.and'],
@@ -305,7 +305,7 @@ select jsonb_object_agg(name, param_object) from unnest(
 $$;
 
 create or replace function oas_build_component_parameters_headers_common ()
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_build_object(
   'preferGet',
@@ -526,14 +526,14 @@ $$;
 -- Responses
 
 create or replace function oas_build_response_objects(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select oas_build_response_objects_from_tables(schemas) ||
        oas_build_response_objects_common();
 $$;
 
 create or replace function oas_build_response_objects_from_tables(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_object_agg(x.not_empty, x.not_empty_response) ||
        jsonb_object_agg(x.may_be_empty, x.may_be_empty_response)
@@ -623,7 +623,7 @@ from (
 $$;
 
 create or replace function oas_build_response_objects_common()
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_build_object(
   'defaultError',
@@ -655,13 +655,13 @@ $$;
 -- Request bodies
 
 create or replace function oas_build_request_bodies(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select oas_build_request_bodies_from_tables(schemas);
 $$;
 
 create or replace function oas_build_request_bodies_from_tables(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_object_agg(x.table_name, x.oas_req_body)
 from (
@@ -704,7 +704,7 @@ $$;
 -- Security Schemes
 
 create or replace function oas_build_component_security_schemes ()
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_build_object(
   'JWT',

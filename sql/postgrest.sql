@@ -271,7 +271,7 @@ returns table (
   comptype_name text,
   comptype_description text,
   columns jsonb
-) language sql as
+) language sql stable as
 $$
 WITH
   columns AS (
@@ -455,7 +455,7 @@ create or replace function postgrest_get_schema_description(schema text)
 returns table (
   title text,
   description text
-) language sql as
+) language sql stable as
 $$
 select
   substr(sd.schema_desc, 0, break_position) as title,

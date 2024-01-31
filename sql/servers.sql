@@ -78,7 +78,7 @@ BEGIN
 
   RETURN json_result;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql STABLE;
 
 CREATE OR REPLACE PROCEDURE set_server_from_configuration()
 AS $$
