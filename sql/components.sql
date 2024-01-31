@@ -535,12 +535,12 @@ $$;
 create or replace function oas_build_response_objects_from_tables(schemas text[])
 returns jsonb language sql as
 $$
-select jsonb_object_agg(x.get, x.get_response) ||
-       jsonb_object_agg(x.post, x.post_response)
+select jsonb_object_agg(x.not_empty, x.not_empty_response) ||
+       jsonb_object_agg(x.may_be_empty, x.may_be_empty_response)
 from (
-  select 'get.' || table_name as get,
+  select 'notEmpty.' || table_name as not_empty,
     oas_response_object(
-      description := 'GET media types for ' || table_name,
+      description := 'Media types when response body is not empty for ' || table_name,
       content := jsonb_build_object(
         'application/json',
         oas_media_type_object(
@@ -565,11 +565,11 @@ from (
           )
         )
       )
-    ) as get_response,
-    'post.' || table_name as post,
+    ) as not_empty_response,
+    'mayBeEmpty.' || table_name as may_be_empty,
     case when insertable then
       oas_response_object(
-        description := 'POST media types for ' || table_name,
+        description := 'Media types when response body could be empty or not for ' || table_name,
         content := jsonb_build_object(
           'application/json',
           oas_media_type_object(
@@ -616,7 +616,7 @@ from (
           )
         )
       )
-    end as post_response
+    end as may_be_empty_response
   from postgrest_get_all_tables(schemas)
   where table_schema = any(schemas)
 ) as x

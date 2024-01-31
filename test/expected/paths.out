@@ -43,21 +43,21 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get
   
 -- uses a reference for the 200 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'responses'->'200');
-                    jsonb_pretty                    
-----------------------------------------------------
- {                                                 +
-     "$ref": "#/components/responses/get.products",+
-     "description": "OK"                           +
+                      jsonb_pretty                       
+---------------------------------------------------------
+ {                                                      +
+     "$ref": "#/components/responses/notEmpty.products",+
+     "description": "OK"                                +
  }
 (1 row)
 
 -- uses a reference for the 206 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'responses'->'206');
-                    jsonb_pretty                    
-----------------------------------------------------
- {                                                 +
-     "$ref": "#/components/responses/get.products",+
-     "description": "Partial Content"              +
+                      jsonb_pretty                       
+---------------------------------------------------------
+ {                                                      +
+     "$ref": "#/components/responses/notEmpty.products",+
+     "description": "Partial Content"                   +
  }
 (1 row)
 
@@ -115,11 +115,11 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'pos
 
 -- uses a reference for the 201 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'responses'->'201');
-                    jsonb_pretty                     
------------------------------------------------------
- {                                                  +
-     "$ref": "#/components/responses/post.products",+
-     "description": "Created"                       +
+                       jsonb_pretty                        
+-----------------------------------------------------------
+ {                                                        +
+     "$ref": "#/components/responses/mayBeEmpty.products",+
+     "description": "Created"                             +
  }
 (1 row)
 
@@ -165,21 +165,21 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
   
 -- uses a reference for the 200 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'responses'->'200');
-                      jsonb_pretty                      
---------------------------------------------------------
- {                                                     +
-     "$ref": "#/components/responses/get.big_products",+
-     "description": "OK"                               +
+                        jsonb_pretty                         
+-------------------------------------------------------------
+ {                                                          +
+     "$ref": "#/components/responses/notEmpty.big_products",+
+     "description": "OK"                                    +
  }
 (1 row)
 
 -- uses a reference for the 206 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'responses'->'206');
-                      jsonb_pretty                      
---------------------------------------------------------
- {                                                     +
-     "$ref": "#/components/responses/get.big_products",+
-     "description": "Partial Content"                  +
+                        jsonb_pretty                         
+-------------------------------------------------------------
+ {                                                          +
+     "$ref": "#/components/responses/notEmpty.big_products",+
+     "description": "Partial Content"                       +
  }
 (1 row)
 
@@ -242,11 +242,11 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
 
 -- uses a reference for the 201 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'responses'->'201');
-                      jsonb_pretty                       
----------------------------------------------------------
- {                                                      +
-     "$ref": "#/components/responses/post.big_products",+
-     "description": "Created"                           +
+                         jsonb_pretty                          
+---------------------------------------------------------------
+ {                                                            +
+     "$ref": "#/components/responses/mayBeEmpty.big_products",+
+     "description": "Created"                                 +
  }
 (1 row)
 

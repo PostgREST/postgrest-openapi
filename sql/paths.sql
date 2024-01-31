@@ -34,9 +34,9 @@ from (
         ),
         responses := jsonb_build_object(
           '200',
-          oas_build_reference_to_responses('get.' || table_name, 'OK'),
+          oas_build_reference_to_responses('notEmpty.' || table_name, 'OK'),
           '206',
-          oas_build_reference_to_responses('get.' || table_name, 'Partial Content'),
+          oas_build_reference_to_responses('notEmpty.' || table_name, 'Partial Content'),
           'default',
           oas_build_reference_to_responses('defaultError', 'Error')
         )
@@ -54,7 +54,7 @@ from (
             ),
             responses := jsonb_build_object(
               '201',
-              oas_build_reference_to_responses('post.' || table_name, 'Created'),
+              oas_build_reference_to_responses('mayBeEmpty.' || table_name, 'Created'),
               'default',
               oas_build_reference_to_responses('defaultError', 'Error')
             )
