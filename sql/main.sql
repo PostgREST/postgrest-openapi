@@ -10,7 +10,7 @@ create or replace function callable_root() returns jsonb as $$
     proa_version := '0.1'::text, -- TODO: needs to be updated; put into config, and have Makefile update
     document_version := 'unset'::text
   );
-$$ language sql;
+$$ language sql volatile;
 
 -- This one returns the OpenAPI JSON; instead of calling it directly, call "callable_root", below
 create or replace function postgrest_openapi_spec(
@@ -19,7 +19,7 @@ create or replace function postgrest_openapi_spec(
   proa_version text default null,
   document_version text default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select oas_openapi_object(
   openapi := '3.1.0',

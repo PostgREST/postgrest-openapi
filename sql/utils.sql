@@ -1,7 +1,7 @@
 -- Functions that help in building the OpenAPI spec inside PostgreSQL
 
 create or replace function pgtype_to_oastype(type text)
-returns text language sql as
+returns text language sql immutable as
 $$
 select case when type like any(array['character', 'character varying', 'text']) then 'string'
             when type like any(array['double precision', 'numeric', 'real']) then 'number'

@@ -19,7 +19,7 @@ create or replace function oas_openapi_object(
   tags jsonb default null,
   externalDocs jsonb default null
 )
-  returns jsonb language sql as
+  returns jsonb language sql stable as
 $$
 select jsonb_strip_nulls(
     jsonb_build_object(
@@ -47,7 +47,7 @@ create or replace function oas_info_object(
   contact jsonb default null,
   license jsonb default null
 )
-  returns jsonb language sql as
+  returns jsonb language sql stable as
 $$
 select jsonb_build_object(
     'title', title,
@@ -65,7 +65,7 @@ create or replace function oas_x_software_object(
   version text,
   description text
 )
-  returns jsonb language sql as
+  returns jsonb language sql stable as
 $$
 select json_build_object(
   'x-name', name,
@@ -86,7 +86,7 @@ create or replace function oas_components_object(
   callbacks jsonb default null,
   pathItems jsonb default null
 )
-  returns jsonb language sql as
+  returns jsonb language sql stable as
 $$
 select json_build_object(
  'schemas', schemas,
@@ -138,7 +138,7 @@ create or replace function oas_schema_object(
   example jsonb default null,
   deprecated boolean default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   -- TODO: build the JSON object according to the type
   select jsonb_build_object(
@@ -184,7 +184,7 @@ create or replace function oas_reference_object(
   summary text default null,
   description text default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select json_build_object(
   '$ref', ref,
@@ -206,7 +206,7 @@ create or replace function oas_parameter_object(
   example jsonb default null,
   examples jsonb default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   -- TODO: Add missing logic between fields (e.g. example and examples are mutually exclusive)
   select jsonb_build_object(
@@ -235,7 +235,7 @@ create or replace function oas_security_scheme_object(
   flows jsonb default null,
   openIdConnectUrl text default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select jsonb_build_object(
     'type', type,
@@ -255,7 +255,7 @@ create or replace function oas_example_object(
   value jsonb default null,
   externalValue text default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select jsonb_build_object(
     'summary', summary,
@@ -280,7 +280,7 @@ create or replace function oas_path_item_object(
   servers jsonb default null,
   parameters jsonb default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select json_build_object(
     '$ref', ref,
@@ -313,7 +313,7 @@ create or replace function oas_operation_object(
   security jsonb default null,
   servers jsonb default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select json_build_object(
     'tags', tags,
@@ -337,7 +337,7 @@ create or replace function oas_response_object(
   content jsonb default null,
   links jsonb default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select json_build_object(
     'description', description,
@@ -353,7 +353,7 @@ create or replace function oas_media_type_object(
   examples jsonb default null,
   encoding jsonb default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select json_build_object(
     'schema', "schema",
@@ -368,7 +368,7 @@ create or replace function oas_request_body_object(
   description text default null,
   required boolean default null
 )
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select json_build_object(
     'content', content,

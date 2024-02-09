@@ -1,14 +1,14 @@
 -- Functions to build the Paths Object of the OAS document
 
 create or replace function oas_build_paths(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
   select oas_build_path_item_root() ||
          oas_build_path_items_from_tables(schemas);
 $$;
 
 create or replace function oas_build_path_items_from_tables(schemas text[])
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select jsonb_object_agg(x.path, x.oas_path_item)
 from (
@@ -129,7 +129,7 @@ from (
 $$;
 
 create or replace function oas_build_path_item_root()
-returns jsonb language sql as
+returns jsonb language sql stable as
 $$
 select
   jsonb_build_object(
