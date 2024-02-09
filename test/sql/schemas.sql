@@ -1,3 +1,5 @@
+-- Tables
+
 -- detects tables as objects
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'type');
 
@@ -45,6 +47,43 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 
 -- references a composite type column from an array composite type inside the items property
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'colors'->'items');
+
+-- Functions
+
+-- Types inside arguments
+-- detects composite types as objects
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_arg'->'type');
+
+-- references a composite type column from another composite type to a component definition
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_arg'->'properties'->'dim');
+
+-- detects a composite type inside another composite type
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.dimension_arg');
+
+-- detects an array composite type inside another composite type
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.color_arg');
+
+-- references a composite type column from an array composite type inside the items property
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_arg'->'properties'->'colors'->'items');
+
+-- Types inside returning values
+
+-- detects composite types as objects
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_ret'->'type');
+
+-- references a composite type column from another composite type to a component definition
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_ret'->'properties'->'dim');
+
+-- detects a composite type inside another composite type
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.dimension_ret');
+
+-- detects an array composite type inside another composite type
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.color_ret');
+
+-- references a composite type column from an array composite type inside the items property
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_ret'->'properties'->'colors'->'items');
+
+-- Common
 
 -- defines all the available prefer headers
 select key, jsonb_pretty(value)

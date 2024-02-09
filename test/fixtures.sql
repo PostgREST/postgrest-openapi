@@ -11,6 +11,16 @@ create type types.attribute as (dim types.dimension, colors types.color[], other
 create type types.hiddentype as (val text);
 create type types.size as enum('XS', 'S', 'M', 'L', 'XL');
 
+-- The detection of types used in functions need to be tested for arguments and returning values separately.
+-- Used to test the detection of custom types inside the arguments
+create type types.dimension_arg as (len numeric, wid numeric, hei numeric);
+create type types.color_arg as (hex char(6), def text);
+create type types.attribute_arg as (dim types.dimension_arg, colors types.color_arg[], other text);
+-- Used to test the detection of custom types inside the returning values
+create type types.dimension_ret as (len numeric, wid numeric, hei numeric);
+create type types.color_ret as (hex char(6), def text);
+create type types.attribute_ret as (dim types.dimension_ret, colors types.color_ret[], other text);
+
 comment on type types.attribute is
 $$Attribute summary
 
@@ -79,6 +89,20 @@ create view test.big_products as
 
 create view test.non_auto_updatable as
   select 'this view is not auto updatable' as description;
+
+create function test.get_products_by_size(s types.size)
+returns setof test.products stable language sql as
+$$
+  select *
+  from test.products
+  where size = s;
+$$;
+
+create function test.get_attribute(loc types.attribute_arg)
+returns types.attribute_ret stable language sql as
+$$
+  select ((1,2,3),array[('a','b')]::types.color_ret[],'a');
+$$;
 
 create schema private;
 
