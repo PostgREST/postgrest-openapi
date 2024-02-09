@@ -4,7 +4,8 @@ create or replace function oas_build_paths(schemas text[])
 returns jsonb language sql stable as
 $$
   select oas_build_path_item_root() ||
-         oas_build_path_items_from_tables(schemas);
+         oas_build_path_items_from_tables(schemas) ||
+         oas_build_path_items_from_functions(schemas);
 $$;
 
 create or replace function oas_build_path_items_from_tables(schemas text[])
@@ -125,6 +126,72 @@ from (
   ) _
   where table_schema = any(schemas)
   group by table_schema, table_name, table_description, insertable, updatable, deletable
+) x;
+$$;
+
+create or replace function oas_build_path_items_from_functions(schemas text[])
+returns jsonb language sql stable as
+$$
+select jsonb_object_agg(x.path, x.oas_path_item)
+from (
+  select '/rpc/' || proc_name as path,
+    oas_path_item_object(
+      get :=oas_operation_object(
+        description := proc_description,
+        tags := array[proc_name],
+        parameters := jsonb_agg(
+          oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', proc_name, arg_name))
+          -- TODO: Add table filters for when the function returns a table
+        ) ||
+        case when rettype_is_table then
+          jsonb_build_array(
+            oas_build_reference_to_parameters('select'),
+            oas_build_reference_to_parameters('order'),
+            oas_build_reference_to_parameters('limit'),
+            oas_build_reference_to_parameters('offset'),
+            oas_build_reference_to_parameters('or'),
+            oas_build_reference_to_parameters('and'),
+            oas_build_reference_to_parameters('not.or'),
+            oas_build_reference_to_parameters('not.and'),
+            oas_build_reference_to_parameters('range'),
+            oas_build_reference_to_parameters('preferGet')
+          )
+        else
+          jsonb_build_array(
+            oas_build_reference_to_parameters('preferGet')
+          )
+        end,
+        responses :=
+        case when rettype_is_table then
+          jsonb_build_object(
+            '200',
+            oas_build_reference_to_responses('notEmpty.' || rettype_name, 'OK'),
+            '206',
+            oas_build_reference_to_responses('notEmpty.' || rettype_name, 'Partial Content'),
+          )
+        when rettype_is_composite then
+          jsonb_build_object(
+            '200',
+            oas_build_reference_to_c,
+          )
+        else
+          jsonb_build_object(
+            '200',
+            oas_build_reference_to_responses('notEmpty.' || name, 'OK'),
+          )
+        end ||
+        jsonb_build_object(
+          'default',
+          oas_build_reference_to_responses('defaultError', 'Error')
+        )
+      )
+    ) as oas_path_item
+  from (
+   select proc_schema, proc_name, proc_description, rettype_schema, rettype_name, rettype_is_table, rettype_is_composite, unnest(all_args) as arg_name
+   from postgrest_get_all_functions(schemas)
+  ) _
+  where schema = any(schemas)
+  group by proc_schema, proc_name, proc_description, rettype_is_table, rettype_is_composite, rettype_schema, rettype_name
 ) x;
 $$;
 
