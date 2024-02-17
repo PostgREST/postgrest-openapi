@@ -36,6 +36,8 @@ create schema test;
 comment on schema test is
 $$My API title
 
+My API summary
+
 My API description
 that spans
 multiple lines$$;
