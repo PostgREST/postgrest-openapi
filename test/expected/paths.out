@@ -40,7 +40,6 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get
  ]
 (1 row)
 
-  
 -- uses a reference for the 200 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'responses'->'200');
                       jsonb_pretty                       
@@ -72,7 +71,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get
 (1 row)
 
 -- uses references for columns as query parameters
-select value 
+select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'parameters')
 where value->>'$ref' like '#/components/parameters/rowFilter.products.%';
                                value                                
@@ -84,6 +83,20 @@ where value->>'$ref' like '#/components/parameters/rowFilter.products.%';
  {"$ref": "#/components/parameters/rowFilter.products.attr"}
  {"$ref": "#/components/parameters/rowFilter.products.size"}
 (6 rows)
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'summary');
+    jsonb_pretty    
+--------------------
+ "Products summary"
+(1 row)
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'description');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ "Products description\nthat spans\nmultiple lines."
+(1 row)
 
 -- uses references for common parameters
 select value
@@ -138,6 +151,20 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'pos
              jsonb_pretty              
 ---------------------------------------
  "#/components/requestBodies/products"
+(1 row)
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'summary');
+    jsonb_pretty    
+--------------------
+ "Products summary"
+(1 row)
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'description');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ "Products description\nthat spans\nmultiple lines."
 (1 row)
 
 -- uses references for common parameters
@@ -196,6 +223,20 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'pat
              jsonb_pretty              
 ---------------------------------------
  "#/components/requestBodies/products"
+(1 row)
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'summary');
+    jsonb_pretty    
+--------------------
+ "Products summary"
+(1 row)
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'description');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ "Products description\nthat spans\nmultiple lines."
 (1 row)
 
 -- uses references for columns as query parameters
@@ -269,6 +310,20 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'del
  }
 (1 row)
 
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'summary');
+    jsonb_pretty    
+--------------------
+ "Products summary"
+(1 row)
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'description');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ "Products description\nthat spans\nmultiple lines."
+(1 row)
+
 -- uses references for columns as query parameters
 select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'parameters')
@@ -310,7 +365,6 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
  ]
 (1 row)
 
-  
 -- uses a reference for the 200 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'responses'->'200');
                         jsonb_pretty                         
@@ -341,8 +395,22 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
  }
 (1 row)
 
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'summary');
+      jsonb_pretty      
+------------------------
+ "Big products summary"
+(1 row)
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'description');
+                      jsonb_pretty                       
+---------------------------------------------------------
+ "Big products description\nthat spans\nmultiple lines."
+(1 row)
+
 -- uses references for columns as query parameters
-select value 
+select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'parameters')
 where value->>'$ref' like '#/components/parameters/rowFilter.big_products.%';
                               value                              
@@ -415,6 +483,20 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
  "#/components/requestBodies/big_products"
 (1 row)
 
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'summary');
+      jsonb_pretty      
+------------------------
+ "Big products summary"
+(1 row)
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'description');
+                      jsonb_pretty                       
+---------------------------------------------------------
+ "Big products description\nthat spans\nmultiple lines."
+(1 row)
+
 -- uses references for common parameters
 select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'parameters')
@@ -478,6 +560,20 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
                jsonb_pretty                
 -------------------------------------------
  "#/components/requestBodies/big_products"
+(1 row)
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'summary');
+      jsonb_pretty      
+------------------------
+ "Big products summary"
+(1 row)
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'description');
+                      jsonb_pretty                       
+---------------------------------------------------------
+ "Big products description\nthat spans\nmultiple lines."
 (1 row)
 
 -- uses references for columns as query parameters
@@ -554,6 +650,20 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
      "$ref": "#/components/responses/defaultError",+
      "description": "Error"                        +
  }
+(1 row)
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'summary');
+      jsonb_pretty      
+------------------------
+ "Big products summary"
+(1 row)
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'description');
+                      jsonb_pretty                       
+---------------------------------------------------------
+ "Big products description\nthat spans\nmultiple lines."
 (1 row)
 
 -- uses references for columns as query parameters

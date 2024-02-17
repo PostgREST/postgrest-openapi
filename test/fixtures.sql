@@ -89,6 +89,13 @@ create view test.big_products as
   from test.products
   where size in ('L', 'XL');
 
+comment on view test.big_products is
+$$Big products summary
+
+Big products description
+that spans
+multiple lines.$$;
+
 create view test.non_auto_updatable as
   select 'this view is not auto updatable' as description;
 

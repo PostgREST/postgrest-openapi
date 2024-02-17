@@ -6,7 +6,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/');
 
 -- shows the table name as tag
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'tags');
-  
+
 -- uses a reference for the 200 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'responses'->'200');
 
@@ -17,9 +17,15 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'responses'->'default');
 
 -- uses references for columns as query parameters
-select value 
+select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'parameters')
 where value->>'$ref' like '#/components/parameters/rowFilter.products.%';
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'summary');
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'get'->'description');
 
 -- uses references for common parameters
 select value
@@ -39,6 +45,12 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'pos
 
 -- uses a reference for request body
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'requestBody'->'$ref');
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'summary');
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'post'->'description');
 
 -- uses references for common parameters
 select value
@@ -61,6 +73,12 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'pat
 
 -- uses a reference for request body
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'requestBody'->'$ref');
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'summary');
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'patch'->'description');
 
 -- uses references for columns as query parameters
 select value
@@ -86,6 +104,12 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'del
 -- uses a reference for error responses
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'responses'->'default');
 
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'summary');
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'description');
+
 -- uses references for columns as query parameters
 select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/products'->'delete'->'parameters')
@@ -101,7 +125,7 @@ where value->>'$ref' not like '#/components/parameters/rowFilter.products.%';
 
 -- shows the table name as tag
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'tags');
-  
+
 -- uses a reference for the 200 HTTP code response
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'responses'->'200');
 
@@ -111,8 +135,14 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
 -- uses a reference for error responses
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'responses'->'default');
 
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'summary');
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'description');
+
 -- uses references for columns as query parameters
-select value 
+select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'get'->'parameters')
 where value->>'$ref' like '#/components/parameters/rowFilter.big_products.%';
 
@@ -138,6 +168,12 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
 -- uses a reference for request body
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'requestBody'->'$ref');
 
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'summary');
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'description');
+
 -- uses references for common parameters
 select value
 from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'post'->'parameters')
@@ -162,6 +198,12 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
 
 -- uses a reference for request body
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'requestBody'->'$ref');
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'summary');
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'patch'->'description');
 
 -- uses references for columns as query parameters
 select value
@@ -189,6 +231,12 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->
 
 -- uses a reference for error responses
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'responses'->'default');
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'summary');
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/big_products'->'delete'->'description');
 
 -- uses references for columns as query parameters
 select value
