@@ -36,6 +36,8 @@ create schema test;
 comment on schema test is
 $$My API title
 
+My API summary
+
 My API description
 that spans
 multiple lines$$;
@@ -86,6 +88,13 @@ create view test.big_products as
   select id, code, name, size
   from test.products
   where size in ('L', 'XL');
+
+comment on view test.big_products is
+$$Big products summary
+
+Big products description
+that spans
+multiple lines.$$;
 
 create view test.non_auto_updatable as
   select 'this view is not auto updatable' as description;

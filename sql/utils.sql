@@ -1,6 +1,6 @@
 -- Functions that help in building the OpenAPI spec inside PostgreSQL
 
-create or replace function pgtype_to_oastype(type text)
+create or replace function postgrest_pgtype_to_oastype(type text)
 returns text language sql immutable as
 $$
 select case when type like any(array['character', 'character varying', 'text']) then 'string'
@@ -11,6 +11,18 @@ select case when type like any(array['character', 'character varying', 'text']) 
             when type like 'json' then 'object'
             when type like 'jsonb' then 'object'
             else 'string' end;
+$$;
+
+create or replace function postgrest_unfold_comment(comm text) returns text[]
+language sql immutable as
+$$
+select array[
+  substr(comm, 0, break_position),
+  trim(leading from substr(comm, break_position), '
+ ') -- trims newlines and empty spaces
+]
+from (select strpos(comm, '
+') as break_position)_;
 $$;
 
 create or replace function oas_build_reference_to_schemas("schema" text)

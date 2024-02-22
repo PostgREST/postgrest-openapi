@@ -15,7 +15,8 @@ from (
   select '/' || table_name as path,
     oas_path_item_object(
       get :=oas_operation_object(
-        description := table_description,
+        summary := (postgrest_unfold_comment(table_description))[1],
+        description := (postgrest_unfold_comment(table_description))[2],
         tags := array[table_name],
         parameters := jsonb_agg(
           oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_name, column_name))
@@ -44,7 +45,8 @@ from (
       post :=
         case when insertable then
           oas_operation_object(
-            description := table_description,
+            summary := (postgrest_unfold_comment(table_description))[1],
+            description := (postgrest_unfold_comment(table_description))[2],
             tags := array[table_name],
             requestBody := oas_build_reference_to_request_bodies(table_name),
             parameters := jsonb_build_array(
@@ -63,7 +65,8 @@ from (
       patch :=
         case when updatable then
           oas_operation_object(
-            description := table_description,
+            summary := (postgrest_unfold_comment(table_description))[1],
+            description := (postgrest_unfold_comment(table_description))[2],
             tags := array[table_name],
             requestBody := oas_build_reference_to_request_bodies(table_name),
             parameters := jsonb_agg(
@@ -93,7 +96,8 @@ from (
       delete :=
         case when deletable then
           oas_operation_object(
-            description := table_description,
+            summary := (postgrest_unfold_comment(table_description))[1],
+            description := (postgrest_unfold_comment(table_description))[2],
             tags := array[table_name],
             parameters := jsonb_agg(
               oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_name, column_name))
