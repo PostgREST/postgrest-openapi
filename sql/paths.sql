@@ -124,10 +124,12 @@ from (
         end
     ) as oas_path_item
   from (
-   select table_schema, table_name, table_description, insertable, updatable, deletable, unnest(all_cols) as column_name
-   from postgrest_get_all_tables(schemas)
+   select table_schema, table_name, table_description, insertable, updatable, deletable, column_name
+   from postgrest_get_all_tables_and_composite_types()
+   where table_schema = any(schemas)
+     and (is_table or is_view)
+   order by table_schema, table_name, column_position
   ) _
-  where table_schema = any(schemas)
   group by table_schema, table_name, table_description, insertable, updatable, deletable
 ) x;
 $$;
