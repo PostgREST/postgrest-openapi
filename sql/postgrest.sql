@@ -154,31 +154,38 @@ WITH RECURSIVE
     AND not c.relispartition;
 $$;
 
--- TODO: simplify the query to have only relevant info for OpenAPI
--- TODO: Further optimize the query (takes ~160ms compared to ~17ms from the query in the core repo)
 create or replace function postgrest_get_all_functions(schemas text[])
 returns table (
-  proc_schema text,
-  proc_name text,
-  proc_description text,
-  schema text,
-  name text,
-  rettype_is_setof boolean,
-  rettype_is_composite boolean,
-  rettype_is_table boolean,
-  rettype_is_composite_alias boolean,
-  provolatile char,
-  hasvariadic boolean,
-  transaction_isolation_level text,
-  statement_timeout text,
-  composite_args_ret oid[],
-  required_args text[],
-  all_args text[],
-  args jsonb
+  argument_input_qty int,
+  argument_name text,
+  argument_reg_type oid,
+  argument_type_name text,
+  argument_item_type_name text,
+  argument_is_required bool,
+  argument_is_in bool,
+  argument_is_inout bool,
+  argument_is_out bool,
+  argument_is_table bool,
+  argument_is_variadic bool,
+  argument_position int,
+  argument_composite_relid oid,
+  function_oid oid,
+  function_schema name,
+  function_name name,
+  function_description text,
+  return_type_name text,
+  return_type_item_name text,
+  return_type_is_set bool,
+  return_type_is_table bool,
+  return_type_is_out bool,
+  return_type_is_composite_alias bool,
+  return_type_composite_relid oid,
+  is_volatile bool,
+  has_variadic bool
 ) language sql stable as
 $$
  -- Recursively get the base types of domains
-  WITH
+ WITH
   base_types AS (
     WITH RECURSIVE
     recurse AS (
@@ -201,146 +208,66 @@ $$
     FROM recurse
     WHERE typbasetype = 0
   ),
-  arguments AS (
+  all_functions AS (
     SELECT
-      p.oid as proc_oid,
-      pa.idx AS idx,
-      COALESCE(pa.name, '') as name,
-      type,
-      CASE type
-        WHEN 'bit'::regtype THEN 'bit varying'
-        WHEN 'bit[]'::regtype THEN 'bit varying[]'
-        WHEN 'character'::regtype THEN 'character varying'
-        WHEN 'character[]'::regtype THEN 'character varying[]'
-        ELSE type::regtype::text
-      END AS type_ignore_length, -- convert types that ignore the lenth and accept any value till maximum size
-      pa.idx <= (p.pronargs - p.pronargdefaults) AS is_required,
-      t.typarray = 0 AS is_array,
-      t.typtype = 'c' AS is_composite,
-      t.typrelid AS composite_oid,
-      CASE
-        WHEN t.typtype = 'd' THEN
-          CASE
-            WHEN nbt.nspname = 'pg_catalog'::name THEN format_type(t.typbasetype, NULL::integer)
-            ELSE format_type(pa.type, NULL::integer)
-            END
-        ELSE format_type(pa.type, NULL::integer)
-        END::text AS data_type,
-      t.oid AS data_type_id,
-      COALESCE(bt.typname, t.typname)::name AS udt_name,
-      CASE
-        WHEN t_arr.typtype = 'd' THEN
-          CASE
-            WHEN nbt_arr.nspname = 'pg_catalog'::name THEN format_type(t_arr.typbasetype, NULL::integer)
-            ELSE format_type(t_arr.oid, t_arr.typtypmod)
-            END
-        ELSE
-          CASE
-            WHEN nt_arr.nspname = 'pg_catalog'::name THEN format_type(t_arr.oid, NULL::integer)
-            ELSE format_type(t_arr.oid, t_arr.typtypmod)
-            END
-        END::text AS item_data_type,
-      t_arr.typtype = 'c' AS item_is_composite,
-      t_arr.typrelid AS item_composite_oid,
-      t_arr.oid AS item_data_type_id,
-      COALESCE(mode = 'v', FALSE) AS is_variadic
+      p.pronargs AS argument_input_qty,
+      COALESCE(pa.name, '') AS argument_name,
+      pa.type AS argument_reg_type,
+      format_type(ta.oid, NULL::integer) AS argument_type_name,
+      format_type(ta_arr.oid, NULL::integer) AS argument_item_type_name,
+      pa.idx <= (array_length(COALESCE(p.proallargtypes, p.proargtypes), 1) - p.pronargdefaults) AS argument_is_required,
+      COALESCE(pa.mode = 'i', TRUE) AS argument_is_in, -- if the mode IS NULL then it is an IN argument
+      COALESCE(pa.mode = 'b', FALSE) AS argument_is_inout,
+      COALESCE(pa.mode = 'o', FALSE) AS argument_is_out,
+      COALESCE(pa.mode = 't', FALSE) AS argument_is_table,
+      COALESCE(pa.mode = 'v', FALSE) AS argument_is_variadic,
+      pa.idx as argument_position,
+      -- If the argument or item is a composite type, this references the relid.
+      COALESCE(ta_arr.typrelid, ta.typrelid) AS argument_composite_relid,
+      p.oid as function_oid,
+      pn.nspname AS function_schema,
+      p.proname AS function_name,
+      d.description AS function_description,
+      format_type(t.oid, NULL::integer) AS return_type_name,
+      format_type(t_arr.oid, NULL::integer) AS return_type_item_name,
+      p.proretset AS return_type_is_set,
+      COALESCE(proargmodes::text[] && '{t}', FALSE) return_type_is_table, -- If the function RETURNS TABLE
+      COALESCE(proargmodes::text[] && '{b,o}', FALSE) return_type_is_out, -- If the function has INOUT or OUT arguments
+      bt.oid <> bt.base AS return_type_is_composite_alias,
+      -- If the return type or item is a composite type, this references the relid.
+      COALESCE(t_arr.typrelid, t.typrelid) AS return_type_composite_relid,
+      p.provolatile = 'v' AS is_volatile,
+      p.provariadic > 0 AS has_variadic
     FROM pg_proc p
-      CROSS JOIN unnest(proargnames, proargtypes, proargmodes)
-        WITH ORDINALITY AS pa (name, type, mode, idx)
-      JOIN (pg_type t JOIN pg_namespace nt ON t.typnamespace = nt.oid)
-        ON pa.type = t.oid
-      LEFT JOIN (pg_type bt JOIN pg_namespace nbt ON bt.typnamespace = nbt.oid)
-        ON t.typtype = 'd' AND t.typbasetype = bt.oid
-      LEFT JOIN (pg_type t_arr JOIN pg_namespace nt_arr ON t_arr.typnamespace = nt_arr.oid)
-        ON t.oid = t_arr.typarray
-      LEFT JOIN (pg_type bt_arr JOIN pg_namespace nbt_arr ON bt_arr.typnamespace = nbt_arr.oid)
-        ON t_arr.typtype = 'd' AND t_arr.typbasetype = bt_arr.oid
-    -- TODO: Add output arguments (including "returns table") to build the response object schema
-    WHERE pa.type IS NOT NULL -- only input arguments
-  ),
-  arguments_agg AS (
-    SELECT
-      info.proc_oid as oid,
-      array_agg(coalesce(info.composite_oid, info.item_composite_oid)) filter (where info.is_composite or info.item_is_composite) AS composite_args,
-      array_agg(info.name order by info.idx) filter (where info.is_required) AS required_args,
-      array_agg(info.name order by info.idx) AS all_args,
-      jsonb_object_agg(
-        info.name,
-          case when info.is_composite then
-            oas_build_reference_to_schemas(info.data_type)
-          else
-            oas_schema_object(
-              type := postgrest_pgtype_to_oastype(info.data_type),
-              format := info.data_type::text,
-              -- TODO: take default values from pg_proc.pronargdefaults
-              -- "default" :=  to_jsonb(info.arg_default),
-              enum := to_jsonb(enum_info.vals),
-              items :=
-                case
-                when not info.is_array then
-                  null
-                when info.item_is_composite then
-                  oas_build_reference_to_schemas(info.item_data_type)
-                else
-                  oas_schema_object(
-                    type := postgrest_pgtype_to_oastype(info.item_data_type),
-                    format := info.item_data_type::text
-                  )
-                end
-            )
-          end order by info.idx
-      ) as args,
-      CASE COUNT(*) - COUNT(nullif(info.name,'')) -- number of unnamed arguments
-        WHEN 0 THEN true
-        WHEN 1 THEN COUNT(*) = 1 AND (array_agg(info.type))[1] IN ('bytea'::regtype, 'json'::regtype, 'jsonb'::regtype, 'text'::regtype, 'xml'::regtype)
-        ELSE false
-      END AS callable
-    FROM arguments as info
-      LEFT OUTER JOIN (
-        SELECT
-          n.nspname AS s,
-          t.typname AS n,
-          array_agg(e.enumlabel ORDER BY e.enumsortorder) AS vals
-        FROM pg_type t
-               JOIN pg_enum e ON t.oid = e.enumtypid
-               JOIN pg_namespace n ON n.oid = t.typnamespace
-        GROUP BY s,n
-      ) AS enum_info ON info.udt_name = enum_info.n
-    GROUP BY proc_oid
-  )
-  SELECT
-    pn.nspname AS proc_schema,
-    p.proname AS proc_name,
-    d.description AS proc_description,
-    tn.nspname AS schema,
-    COALESCE(comp.relname, t.typname) AS name,
-    p.proretset AS rettype_is_setof,
-    t.typtype = 'c' AS rettype_is_composite,
-    COALESCE(proargmodes::text[] @> '{t}', false) AS rettype_is_table,
-    -- TODO: add support for rettype out/inout
-    bt.oid <> bt.base as rettype_is_composite_alias,
-    p.provolatile,
-    p.provariadic > 0 as hasvariadic,
-    lower((regexp_split_to_array((regexp_split_to_array(iso_config, '='))[2], ','))[1]) AS transaction_isolation_level,
-    lower((regexp_split_to_array((regexp_split_to_array(timeout_config, '='))[2], ','))[1]) AS statement_timeout,
-    a.composite_args || case when t.typtype = 'c' then t.typrelid end as composite_args_ret,
-    a.required_args,
-    a.all_args,
-    COALESCE(a.args, '{}') AS args
-  FROM pg_proc p
-  LEFT JOIN arguments_agg a ON a.oid = p.oid
-  JOIN pg_namespace pn ON pn.oid = p.pronamespace
-  JOIN base_types bt ON bt.oid = p.prorettype
-  JOIN pg_type t ON t.oid = bt.base
-  JOIN pg_namespace tn ON tn.oid = t.typnamespace
-  -- TODO: Add support for functions returning array types (extra joins needed)
-  LEFT JOIN pg_class comp ON comp.oid = t.typrelid
-  LEFT JOIN pg_description as d ON d.objoid = p.oid
-  LEFT JOIN LATERAL unnest(proconfig) iso_config ON iso_config like 'default_transaction_isolation%'
-  LEFT JOIN LATERAL unnest(proconfig) timeout_config ON timeout_config like 'statement_timeout%'
-  WHERE t.oid <> 'trigger'::regtype AND COALESCE(a.callable, true)
+    LEFT JOIN LATERAL unnest(proargnames, coalesce(proallargtypes,proargtypes), proargmodes)
+      WITH ORDINALITY AS pa (name, type, mode, idx) ON TRUE
+    JOIN pg_namespace pn ON pn.oid = p.pronamespace
+    -- Joins relevant to the return type
+    JOIN base_types bt ON bt.oid = p.prorettype
+    JOIN pg_type t ON t.oid = bt.base
+    LEFT JOIN pg_type t_arr
+      ON t.typarray = 0 AND t.oid = t_arr.typarray
+    LEFT JOIN base_types bta ON bta.oid = pa.type
+    LEFT JOIN pg_type ta ON ta.oid = bta.base
+    LEFT JOIN pg_type ta_arr
+      ON ta.typarray = 0 AND ta.oid = ta_arr.typarray
+    LEFT JOIN pg_description as d ON d.objoid = p.oid
+    WHERE t.oid <> 'trigger'::regtype
     AND prokind = 'f'
-    AND pn.nspname = ANY(schemas);
+    AND p.pronamespace = ANY(schemas::regnamespace[])
+  )
+  SELECT a.*
+  FROM all_functions a
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM all_functions x
+    -- Do not include functions with unnamed arguments, unless it's a function with a single unnamed parameter of certain types
+    WHERE x.argument_input_qty > 0
+      AND x.argument_name = ''
+      AND (x.argument_is_in OR x.argument_is_inout OR x.argument_is_variadic)
+      AND NOT (x.argument_input_qty = 1 AND x.argument_reg_type IN ('bytea'::regtype, 'json'::regtype, 'jsonb'::regtype, 'text'::regtype, 'xml'::regtype))
+      AND x.function_oid = a.function_oid
+  );
 $$;
 
 create or replace function postgrest_get_schema_description(schema text)

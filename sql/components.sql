@@ -28,6 +28,10 @@ with recursive all_rels as (
   select *
   from postgrest_get_all_tables_and_composite_types()
 ),
+all_funcs as (
+  select *
+  from postgrest_get_all_functions(schemas)
+),
 recursive_rels_in_schema as (
   select *
   from all_rels
@@ -35,10 +39,11 @@ recursive_rels_in_schema as (
     -- All the tables or views in the exposed schemas
     (table_schema = any(schemas) and (is_table or is_view))
     -- All the composite types or tables that are present in function arguments
-    -- TODO: tweak postgrest_get_all_functions() or use another CTE for a more performant filter
-    or table_oid in (
-      select unnest(composite_args_ret)
-      from postgrest_get_all_functions(schemas)
+    or exists (
+      select 1
+      from all_funcs
+      where return_type_composite_relid = table_oid
+        or argument_composite_relid = table_oid
     )
   union
   -- Tables may have columns with composite or table types, so we recursively
