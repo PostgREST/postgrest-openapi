@@ -62,8 +62,8 @@ all_tables_and_composite_types as (
     array_agg(column_name order by column_position) filter (where not column_is_nullable) AS required_cols,
     jsonb_object_agg(
       column_name,
-        case when column_item_data_type is null and column_composite_relid <> 0 then
-          oas_build_reference_to_schemas(column_data_type)
+        case when column_item_data_type is null and column_is_composite then
+          oas_build_reference_to_schemas(column_composite_full_name)
         else
           oas_schema_object(
             description := column_description,
@@ -76,8 +76,8 @@ all_tables_and_composite_types as (
               case
               when column_item_data_type is null then
                 null
-              when column_composite_relid <> 0 then
-                oas_build_reference_to_schemas(column_item_data_type)
+              when column_is_composite then
+                oas_build_reference_to_schemas(column_composite_full_name)
               else
                 oas_schema_object(
                   type := postgrest_pgtype_to_oastype(column_item_data_type),
