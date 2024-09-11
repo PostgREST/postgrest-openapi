@@ -19,7 +19,7 @@ from (
         description := (postgrest_unfold_comment(table_description))[2],
         tags := array[table_name],
         parameters := jsonb_agg(
-          oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_name, column_name))
+          oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_full_name, column_name))
         ) ||
         jsonb_build_array(
           oas_build_reference_to_parameters('select'),
@@ -35,9 +35,9 @@ from (
         ),
         responses := jsonb_build_object(
           '200',
-          oas_build_reference_to_responses('notEmpty.' || table_name, 'OK'),
+          oas_build_reference_to_responses('notEmpty.' || table_full_name, 'OK'),
           '206',
-          oas_build_reference_to_responses('notEmpty.' || table_name, 'Partial Content'),
+          oas_build_reference_to_responses('notEmpty.' || table_full_name, 'Partial Content'),
           'default',
           oas_build_reference_to_responses('defaultError', 'Error')
         )
@@ -48,7 +48,7 @@ from (
             summary := (postgrest_unfold_comment(table_description))[1],
             description := (postgrest_unfold_comment(table_description))[2],
             tags := array[table_name],
-            requestBody := oas_build_reference_to_request_bodies(table_name),
+            requestBody := oas_build_reference_to_request_bodies(table_full_name),
             parameters := jsonb_build_array(
               oas_build_reference_to_parameters('select'),
               oas_build_reference_to_parameters('columns'),
@@ -56,7 +56,7 @@ from (
             ),
             responses := jsonb_build_object(
               '201',
-              oas_build_reference_to_responses('mayBeEmpty.' || table_name, 'Created'),
+              oas_build_reference_to_responses('mayBeEmpty.' || table_full_name, 'Created'),
               'default',
               oas_build_reference_to_responses('defaultError', 'Error')
             )
@@ -68,9 +68,9 @@ from (
             summary := (postgrest_unfold_comment(table_description))[1],
             description := (postgrest_unfold_comment(table_description))[2],
             tags := array[table_name],
-            requestBody := oas_build_reference_to_request_bodies(table_name),
+            requestBody := oas_build_reference_to_request_bodies(table_full_name),
             parameters := jsonb_agg(
-              oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_name, column_name))
+              oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_full_name, column_name))
             ) ||
             jsonb_build_array(
               oas_build_reference_to_parameters('select'),
@@ -85,7 +85,7 @@ from (
             ),
             responses := jsonb_build_object(
               '200',
-              oas_build_reference_to_responses('notEmpty.' || table_name, 'OK'),
+              oas_build_reference_to_responses('notEmpty.' || table_full_name, 'OK'),
               '204',
               oas_build_reference_to_responses('empty', 'No Content'),
               'default',
@@ -100,7 +100,7 @@ from (
             description := (postgrest_unfold_comment(table_description))[2],
             tags := array[table_name],
             parameters := jsonb_agg(
-              oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_name, column_name))
+              oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_full_name, column_name))
             ) ||
             jsonb_build_array(
               oas_build_reference_to_parameters('select'),
@@ -114,7 +114,7 @@ from (
             ),
             responses := jsonb_build_object(
               '200',
-              oas_build_reference_to_responses('notEmpty.' || table_name, 'OK'),
+              oas_build_reference_to_responses('notEmpty.' || table_full_name, 'OK'),
               '204',
               oas_build_reference_to_responses('empty', 'No Content'),
               'default',
@@ -124,13 +124,13 @@ from (
         end
     ) as oas_path_item
   from (
-   select table_schema, table_name, table_description, insertable, updatable, deletable, column_name
+   select table_schema, table_name, table_full_name, table_description, insertable, updatable, deletable, column_name
    from postgrest_get_all_tables_and_composite_types()
    where table_schema = any(schemas)
      and (is_table or is_view)
    order by table_schema, table_name, column_position
   ) _
-  group by table_schema, table_name, table_description, insertable, updatable, deletable
+  group by table_schema, table_name, table_full_name, table_description, insertable, updatable, deletable
 ) x;
 $$;
 

@@ -56,7 +56,7 @@ recursive_rels_in_schema as (
 all_tables_and_composite_types as (
   select
     table_schema,
-    table_name,
+    table_full_name,
     table_description,
     is_composite,
     array_agg(column_name order by column_position) filter (where not column_is_nullable) AS required_cols,
@@ -88,11 +88,11 @@ all_tables_and_composite_types as (
         end order by column_position
     ) as columns
   from recursive_rels_in_schema
-  group by table_schema, table_name, table_description, is_composite
+  group by table_schema, table_full_name, table_description, is_composite
 )
 select jsonb_object_agg(x.component_name, x.oas_schema)
 from (
-  select case when is_composite then table_schema || '.' else '' end || table_name as component_name,
+  select table_full_name as component_name,
     oas_schema_object(
       description := table_description,
       properties := coalesce(columns, '{}'),
@@ -235,7 +235,7 @@ returns jsonb language sql stable as
 $$
 select jsonb_object_agg(x.param_name, x.param_schema)
 from (
-  select format('rowFilter.%1$s.%2$s', table_name, column_name) as param_name,
+  select format('rowFilter.%1$s.%2$s', table_full_name, column_name) as param_name,
     oas_parameter_object(
       name := column_name,
       "in" := 'query',
@@ -244,7 +244,7 @@ from (
       )
     ) as param_schema
   from (
-     select table_schema, is_table, is_view, table_name, column_name
+     select table_full_name, column_name
      from postgrest_get_all_tables_and_composite_types()
      where table_schema = any(schemas)
        and (is_table or is_view)
@@ -588,24 +588,24 @@ $$
 select jsonb_object_agg(x.not_empty, x.not_empty_response) ||
        jsonb_object_agg(x.may_be_empty, x.may_be_empty_response)
 from (
-  select 'notEmpty.' || table_name as not_empty,
+  select 'notEmpty.' || table_full_name as not_empty,
     oas_response_object(
-      description := 'Media types when response body is not empty for ' || table_name,
+      description := 'Media types when response body is not empty for ' || table_full_name,
       content := jsonb_build_object(
         'application/json',
         oas_media_type_object(
           schema := oas_schema_object(
             type := 'array',
-            items := oas_build_reference_to_schemas(table_name)
+            items := oas_build_reference_to_schemas(table_full_name)
           )
         ),
         'application/vnd.pgrst.object+json',
         oas_media_type_object(
-          schema := oas_build_reference_to_schemas(table_name)
+          schema := oas_build_reference_to_schemas(table_full_name)
         ),
         'application/vnd.pgrst.object+json;nulls=stripped',
         oas_media_type_object(
-          schema := oas_build_reference_to_schemas(table_name)
+          schema := oas_build_reference_to_schemas(table_full_name)
         ),
         'text/csv',
         oas_media_type_object(
@@ -616,10 +616,10 @@ from (
         )
       )
     ) as not_empty_response,
-    'mayBeEmpty.' || table_name as may_be_empty,
+    'mayBeEmpty.' || table_full_name as may_be_empty,
     case when insertable then
       oas_response_object(
-        description := 'Media types when response body could be empty or not for ' || table_name,
+        description := 'Media types when response body could be empty or not for ' || table_full_name,
         content := jsonb_build_object(
           'application/json',
           oas_media_type_object(
@@ -627,7 +627,7 @@ from (
               oneof := jsonb_build_array(
                 oas_schema_object(
                   type := 'array',
-                  items := oas_build_reference_to_schemas(table_name)
+                  items := oas_build_reference_to_schemas(table_full_name)
                 ),
                 oas_schema_object(
                   type := 'string'
@@ -639,7 +639,7 @@ from (
           oas_media_type_object(
             schema := oas_schema_object(
               oneOf := jsonb_build_array(
-                oas_build_reference_to_schemas(table_name),
+                oas_build_reference_to_schemas(table_full_name),
                 oas_schema_object(
                     type := 'string'
                   )
@@ -650,7 +650,7 @@ from (
           oas_media_type_object(
             schema := oas_schema_object(
               oneOf := jsonb_build_array(
-                oas_build_reference_to_schemas(table_name),
+                oas_build_reference_to_schemas(table_full_name),
                 oas_schema_object(
                     type := 'string'
                   )
@@ -670,7 +670,7 @@ from (
   from postgrest_get_all_tables_and_composite_types()
   where table_schema = any(schemas)
     and (is_table or is_view)
-  group by table_schema, table_name, insertable, is_table, is_view
+  group by table_schema, table_full_name, insertable, is_table, is_view
 ) as x
 $$;
 
@@ -715,28 +715,28 @@ $$;
 create or replace function oas_build_request_bodies_from_tables(schemas text[])
 returns jsonb language sql stable as
 $$
-select jsonb_object_agg(x.table_name, x.oas_req_body)
+select jsonb_object_agg(x.table_full_name, x.oas_req_body)
 from (
   select
-    table_name,
+    table_full_name,
     oas_request_body_object(
-      description := table_name,
+      description := table_full_name,
       content := jsonb_build_object(
         'application/json',
         oas_media_type_object(
           "schema" := oas_schema_object(
             oneOf := jsonb_build_array(
-              oas_build_reference_to_schemas(table_name),
+              oas_build_reference_to_schemas(table_full_name),
               oas_schema_object(
                 type := 'array',
-                items := oas_build_reference_to_schemas(table_name)
+                items := oas_build_reference_to_schemas(table_full_name)
               )
             )
           )
         ),
         'application/x-www-form-urlencoded',
         oas_media_type_object(
-          "schema" := oas_build_reference_to_schemas(table_name)
+          "schema" := oas_build_reference_to_schemas(table_full_name)
         ),
         'text/csv',
         oas_media_type_object(
@@ -751,7 +751,7 @@ from (
   where table_schema = any(schemas)
     and (is_table or is_view)
     and insertable
-  group by table_schema, table_name, insertable
+  group by table_schema, table_full_name, insertable
 ) as x;
 $$;
 

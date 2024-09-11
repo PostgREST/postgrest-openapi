@@ -134,3 +134,6 @@ returns void as $$
     set_config('pgrst.version', '0000.1111', false)
   ;
 $$ language sql;
+
+-- Emulate PostgREST search_path setting
+alter database contrib_regression set search_path = test, public;
