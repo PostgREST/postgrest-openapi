@@ -11,6 +11,8 @@ returns table (
   column_character_maximum_length integer,
   column_enums text[],
   column_composite_relid oid,
+  column_composite_full_name text,
+  column_is_composite bool,
   column_position int,
   column_is_pk bool,
   table_oid oid,
@@ -85,7 +87,10 @@ WITH RECURSIVE
     )::integer AS column_character_maximum_length,
     (SELECT array_agg(enumlabel ORDER BY enumsortorder) FROM pg_enum WHERE enumtypid = COALESCE(COALESCE(bt_arr.oid, bt.oid), COALESCE(t_arr.oid, t.oid))) AS column_enums,
     -- If the column or item is a composite type, this references the relid.
-    COALESCE(COALESCE(bt_arr.typrelid, t_arr.typrelid), COALESCE(bt.typrelid, t.typrelid)) AS column_composite_relid,
+    cc.oid AS column_composite_relid,
+    -- The "full name" of the composite type is `<schema>.<name>`. We omit `<schema>.` when it belongs to the `current_schema`
+    COALESCE(NULLIF(cc.relnamespace::regnamespace::text, current_schema) || '.', '') || cc.relname AS column_composite_full_name,
+    COALESCE(cc.oid <> 0, FALSE) AS column_is_composite,
     a.attnum::integer AS position,
     tpks.position IS NOT NULL AS column_is_pk,
     c.oid AS table_oid,
@@ -141,6 +146,8 @@ WITH RECURSIVE
         ON t.typtype = 'd' AND t.typbasetype = bt.oid
     LEFT JOIN pg_type bt_arr
         ON bt.typarray = 0 AND bt.oid = bt_arr.typarray
+    LEFT JOIN pg_class cc
+        ON cc.oid = COALESCE(COALESCE(bt_arr.typrelid, t_arr.typrelid), COALESCE(bt.typrelid, t.typrelid))
     LEFT JOIN pg_depend seq
         ON seq.refobjid = a.attrelid AND seq.refobjsubid = a.attnum and seq.deptype = 'i'
     LEFT JOIN tbl_pk_cols tpks
@@ -169,9 +176,12 @@ returns table (
   argument_is_variadic bool,
   argument_position int,
   argument_composite_relid oid,
+  argument_composite_full_name text,
+  argument_is_composite bool,
   function_oid oid,
   function_schema name,
   function_name name,
+  function_full_name text,
   function_description text,
   return_type_name text,
   return_type_item_name text,
@@ -180,6 +190,8 @@ returns table (
   return_type_is_out bool,
   return_type_is_composite_alias bool,
   return_type_composite_relid oid,
+  return_type_composite_full_name text,
+  return_type_is_composite bool,
   is_volatile bool,
   has_variadic bool
 ) language sql stable as
@@ -223,10 +235,15 @@ $$
       COALESCE(pa.mode = 'v', FALSE) AS argument_is_variadic,
       pa.idx as argument_position,
       -- If the argument or item is a composite type, this references the relid.
-      COALESCE(ta_arr.typrelid, ta.typrelid) AS argument_composite_relid,
+      ca.oid AS argument_composite_relid,
+      -- The "full name" of the composite type is `<schema>.<name>`. We omit `<schema>.` when it belongs to the `current_schema`
+      COALESCE(NULLIF(ca.relnamespace::regnamespace::text, current_schema) || '.', '') || ca.relname AS argument_composite_full_name,
+      COALESCE(ca.oid <> 0, FALSE) AS argument_is_composite,
       p.oid as function_oid,
       pn.nspname AS function_schema,
       p.proname AS function_name,
+      -- The "full name" of the function `<schema>.<name>`. We omit `<schema>.` when it belongs to the `current_schema`
+      COALESCE(NULLIF(pn.nspname, current_schema) || '.', '') || p.proname AS function_full_name,
       d.description AS function_description,
       format_type(t.oid, NULL::integer) AS return_type_name,
       format_type(t_arr.oid, NULL::integer) AS return_type_item_name,
@@ -235,7 +252,9 @@ $$
       COALESCE(proargmodes::text[] && '{b,o}', FALSE) return_type_is_out, -- If the function has INOUT or OUT arguments
       bt.oid <> bt.base AS return_type_is_composite_alias,
       -- If the return type or item is a composite type, this references the relid.
-      COALESCE(t_arr.typrelid, t.typrelid) AS return_type_composite_relid,
+      c.oid AS return_type_composite_relid,
+      COALESCE(NULLIF(c.relnamespace::regnamespace::text, current_schema) || '.', '') || c.relname AS return_type_composite_full_name,
+      COALESCE(c.oid <> 0, FALSE) AS return_type_is_composite,
       p.provolatile = 'v' AS is_volatile,
       p.provariadic > 0 AS has_variadic
     FROM pg_proc p
@@ -247,10 +266,14 @@ $$
     JOIN pg_type t ON t.oid = bt.base
     LEFT JOIN pg_type t_arr
       ON t.typarray = 0 AND t.oid = t_arr.typarray
+    LEFT JOIN pg_class c
+      ON c.oid = COALESCE(t_arr.typrelid, t.typrelid)
     LEFT JOIN base_types bta ON bta.oid = pa.type
     LEFT JOIN pg_type ta ON ta.oid = bta.base
     LEFT JOIN pg_type ta_arr
       ON ta.typarray = 0 AND ta.oid = ta_arr.typarray
+    LEFT JOIN pg_class ca
+      ON ca.oid = COALESCE(ta_arr.typrelid, ta.typrelid)
     LEFT JOIN pg_description as d ON d.objoid = p.oid
     WHERE t.oid <> 'trigger'::regtype
     AND prokind = 'f'
