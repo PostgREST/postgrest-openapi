@@ -18,6 +18,7 @@ create or replace function oas_build_component_schemas(schemas text[])
 returns jsonb language sql stable as
 $$
   select oas_build_component_schemas_from_tables_and_composite_types(schemas) ||
+         oas_build_component_schemas_from_functions_return_types(schemas) ||
          oas_build_component_schemas_headers()
 $$;
 
@@ -100,6 +101,82 @@ from (
       type := 'object'
     ) as oas_schema
   from all_tables_and_composite_types
+) x;
+$$;
+
+create or replace function oas_build_component_schemas_from_functions_return_types(schemas text[])
+returns jsonb language sql stable as
+$$
+with all_functions_returning_table_out_simple_types as (
+  -- Build Component Schemas for functions that RETURNS simple types or RETURNS TABLE or with INOUT/OUT arguments
+  select *, not (return_type_is_out or return_type_is_table) as return_type_is_simple
+  from postgrest_get_all_functions(schemas)
+  where return_type_is_out or return_type_is_table or not return_type_is_composite
+),
+aggregated_function_returns as (
+  select
+    function_schema,
+    function_full_name,
+    function_description,
+    return_type_is_simple,
+    -- Build objects for functions with RETURNS TABLE or with INOUT/OUT arguments
+    case when not return_type_is_simple then
+      jsonb_object_agg(
+        argument_name,
+        case when argument_item_type_name is null and argument_is_composite then
+          oas_build_reference_to_schemas(argument_composite_full_name)
+        else
+          oas_schema_object(
+            type := postgrest_pgtype_to_oastype(argument_type_name),
+            format := argument_type_name::text,
+            items :=
+              case
+              when argument_item_type_name is null then
+                null
+              when argument_is_composite then
+                oas_build_reference_to_schemas(argument_composite_full_name)
+              else
+                oas_schema_object(
+                  type := postgrest_pgtype_to_oastype(argument_item_type_name),
+                  format := argument_item_type_name::text
+                )
+              end
+          )
+        end
+        order by argument_position
+      ) filter ( where argument_is_table or argument_is_out or argument_is_inout)
+    -- For functions with RETURNS <simple type> build the Schema according to the type
+    else
+      oas_schema_object(
+        type := postgrest_pgtype_to_oastype(return_type_name),
+        format := return_type_name::text,
+        items :=
+          case when return_type_item_name is not null then
+            oas_schema_object(
+              type := postgrest_pgtype_to_oastype(return_type_item_name),
+              format := return_type_item_name::text
+            )
+          end
+      )
+    end as arguments
+  from all_functions_returning_table_out_simple_types
+  group by function_schema, function_name, function_full_name, function_description, return_type_is_simple, return_type_name, return_type_item_name
+)
+select jsonb_object_agg(x.component_name, x.oas_schema)
+from (
+  select
+    'rpc.' || function_full_name as component_name,
+    case when not return_type_is_simple then
+      oas_schema_object(
+        description := function_description,
+        properties := coalesce(arguments, '{}'),
+        type := 'object'
+      )
+    else
+      arguments
+    end as oas_schema
+  from
+    aggregated_function_returns
 ) x;
 $$;
 

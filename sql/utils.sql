@@ -8,8 +8,7 @@ select case when type like any(array['character', 'character varying', 'text']) 
             when type like any(array['bigint', 'integer', 'smallint']) then 'integer'
             when type like 'boolean' then 'boolean'
             when type like '%[]' then 'array'
-            when type like 'json' then 'object'
-            when type like 'jsonb' then 'object'
+            when type like any(array['json', 'jsonb', 'record']) then 'object'
             else 'string' end;
 $$;
 

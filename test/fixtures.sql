@@ -20,6 +20,10 @@ create type types.attribute_arg as (dim types.dimension_arg, colors types.color_
 create type types.dimension_ret as (len numeric, wid numeric, hei numeric);
 create type types.color_ret as (hex char(6), def text);
 create type types.attribute_ret as (dim types.dimension_ret, colors types.color_ret[], other text);
+-- Used to test reference to composite types
+create type types.dimension_ref as (len numeric, wid numeric, hei numeric);
+create type types.color_ref as (hex char(6), def text);
+create type types.attribute_ref as (dim types.dimension_ret, colors types.color_ret[], other text);
 
 comment on type types.attribute is
 $$Attribute summary
@@ -99,6 +103,8 @@ multiple lines.$$;
 create view test.non_auto_updatable as
   select 'this view is not auto updatable' as description;
 
+-- Functions for testing
+
 create function test.get_products_by_size(s types.size)
 returns setof test.products stable language sql as
 $$
@@ -107,11 +113,104 @@ $$
   where size = s;
 $$;
 
+comment on function test.get_products_by_size(s types.size) is
+$$Get Products By Size summary
+
+Get Products By Size description
+that spans
+multiple lines.$$;
+
 create function test.get_attribute(loc types.attribute_arg)
 returns types.attribute_ret stable language sql as
 $$
   select ((1,2,3),array[('a','b')]::types.color_ret[],'a');
 $$;
+
+create function test.returns_simple_type()
+returns text
+stable language sql as
+$$
+  select 'text';
+$$;
+
+create function test.returns_simple_type_arr()
+returns text[]
+stable language sql as
+$$
+  select array['text'];
+$$;
+
+create function test.returns_table()
+returns table (num int, val text, comp types.dimension_ref)
+stable language sql as
+$$
+  select (1,'text',(0.1,0.2,0.3));
+$$;
+
+create function test.returns_table_arr()
+returns table (num int[], val text[], comp types.dimension_ref[])
+stable language sql as
+$$
+  select (array[1],array['text'],array[(0.1,0.2,0.3)]::types.dimension_ref[]);
+$$;
+
+create function test.returns_inout(x int, inout y text, inout z types.color_ref)
+returns record
+stable language sql as
+$$
+  select ($2 || $1, $3);
+$$;
+
+create function test.returns_inout_arr(x int, inout y text[], inout z types.color_ref[])
+returns record
+stable language sql as
+$$
+  select (array[$2[$1]]::text[], array[$3]::types.color_ref[]);
+$$;
+
+create function test.returns_out(x int, y text, out a text, out b types.color_ref)
+returns record
+stable language sql as
+$$
+  select ($2 || $1, ('ffffff','white'));
+$$;
+
+create function test.returns_out_arr(x int, y text, out a text[], out b types.color_ref[])
+returns record
+stable language sql as
+$$
+  select (array[$2 || $1]::text[], array[('ffffff','white')]::types.color_ref[]);
+$$;
+
+create function test.returns_inout_out(x int, inout y text, out z types.color_ref)
+returns record
+stable language sql as
+$$
+  select ($2 || $1, ('ffffff','white'));
+$$;
+
+create function test.returns_inout_out_arr(x int, inout y text[], out z types.color_ref[])
+returns record
+stable language sql as
+$$
+  select (array[$2[$1]]::text[], array[('ffffff','white')]::types.color_ref[]);
+$$;
+
+create function test.returns_unknown_record()
+returns record
+stable language sql as
+$$
+  select (1, 'a', ('ffffff','white')::types.color_ref);
+$$;
+
+create function test.single_unnamed_json_param(json) returns json stable language sql as 'select $1';
+create function test.single_unnamed_jsonb_param(jsonb) returns jsonb stable language sql as 'select $1';
+create function test.single_unnamed_text_param(text) returns text stable language sql as 'select $1';
+create function test.single_unnamed_xml_param(xml) returns xml stable language sql as 'select $1';
+
+create function test.single_unnamed_unrecognized_param(int) returns int stable language sql as 'select $1';
+create function test.unnamed_params(int, numeric) returns numeric stable language sql as 'select $2 + $1';
+create function test.named_and_unnamed_params(a int, numeric) returns numeric stable language sql as 'select $2 + $1';
 
 create schema private;
 
@@ -120,6 +219,7 @@ create table private.secret_table (
   name text not null
 );
 
+create function private.secret_function() returns int stable language sql as 'select 1';
 
 -- Sample PostgREST config -- https://postgrest.org/en/stable/references/configuration.html#in-database-configuration
 create schema postgrest;
