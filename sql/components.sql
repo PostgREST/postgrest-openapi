@@ -303,6 +303,7 @@ create or replace function oas_build_component_parameters(schemas text[])
 returns jsonb language sql stable as
 $$
   select oas_build_component_parameters_query_params_from_tables(schemas) ||
+         oas_build_component_parameters_query_params_from_function_args(schemas) ||
          oas_build_component_parameters_query_params_common() ||
          oas_build_component_parameters_headers_common();
 $$;
@@ -325,6 +326,44 @@ from (
      from postgrest_get_all_tables_and_composite_types()
      where table_schema = any(schemas)
        and (is_table or is_view)
+  ) _
+) x;
+$$;
+
+create or replace function oas_build_component_parameters_query_params_from_function_args(schemas text[])
+returns jsonb language sql stable as
+$$
+select jsonb_object_agg(x.param_name, x.param_schema)
+from (
+  select format('rpcParam.%1$s.%2$s', function_full_name, argument_name) as param_name,
+    oas_parameter_object(
+      name := argument_name,
+      "in" := 'query',
+      required := argument_is_required,
+      schema :=
+        case when argument_is_variadic then
+          oas_schema_object(
+            type := 'array',
+            items := oas_schema_object(
+              type := argument_oastype,
+              format := argument_type_name::text
+            )
+          )
+        else
+          oas_schema_object(
+            type := argument_oastype,
+            format := argument_type_name::text
+          )
+        end
+    ) as param_schema
+  from (
+    select function_full_name, argument_name, argument_is_required, argument_type_name, argument_is_variadic,
+           -- In query parameters, "array" and "object" types have a different format, so we use a generic "string"
+           case when postgrest_pgtype_to_oastype(argument_type_name) = any ('{array,object}') then 'string' else postgrest_pgtype_to_oastype(argument_type_name) end as argument_oastype
+    from postgrest_get_all_functions(schemas)
+    where argument_input_qty > 0
+      and argument_name <> ''
+      and (argument_is_in or argument_is_inout or argument_is_variadic)
   ) _
 ) x;
 $$;

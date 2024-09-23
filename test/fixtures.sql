@@ -203,6 +203,27 @@ $$
   select (1, 'a', ('ffffff','white')::types.color_ref);
 $$;
 
+create function test.has_in_parameters(x int, y text[], z types.attribute_ref, o int default 0)
+  returns record
+  stable language sql as
+$$
+select ($1, $2, $3, $4);
+$$;
+
+create function test.has_inout_parameters(inout x int, inout y text[], inout z types.attribute_ref, inout o int default 0)
+  returns record
+  stable language sql as
+$$
+select ($1, $2, $3, $4);
+$$;
+
+create function test.has_variadic_parameter(x int, variadic y int[])
+  returns record
+  stable language sql as
+$$
+select ($1, $2);
+$$;
+
 create function test.single_unnamed_json_param(json) returns json stable language sql as 'select $1';
 create function test.single_unnamed_jsonb_param(jsonb) returns jsonb stable language sql as 'select $1';
 create function test.single_unnamed_text_param(text) returns text stable language sql as 'select $1';

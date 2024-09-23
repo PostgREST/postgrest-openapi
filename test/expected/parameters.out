@@ -367,3 +367,120 @@ where key like 'rowFilter.big_products.%';
                              | }
 (4 rows)
 
+-- shows `IN` function arguments as RPC parameters
+select key, jsonb_pretty(value)
+from jsonb_each(postgrest_openapi_spec('{test}')->'components'->'parameters')
+where key like 'rpcParam.has_in_parameters.%';
+             key              |              jsonb_pretty               
+------------------------------+-----------------------------------------
+ rpcParam.has_in_parameters.o | {                                      +
+                              |     "in": "query",                     +
+                              |     "name": "o",                       +
+                              |     "schema": {                        +
+                              |         "type": "integer",             +
+                              |         "format": "integer"            +
+                              |     },                                 +
+                              |     "required": false                  +
+                              | }
+ rpcParam.has_in_parameters.x | {                                      +
+                              |     "in": "query",                     +
+                              |     "name": "x",                       +
+                              |     "schema": {                        +
+                              |         "type": "integer",             +
+                              |         "format": "integer"            +
+                              |     },                                 +
+                              |     "required": true                   +
+                              | }
+ rpcParam.has_in_parameters.y | {                                      +
+                              |     "in": "query",                     +
+                              |     "name": "y",                       +
+                              |     "schema": {                        +
+                              |         "type": "string",              +
+                              |         "format": "text[]"             +
+                              |     },                                 +
+                              |     "required": true                   +
+                              | }
+ rpcParam.has_in_parameters.z | {                                      +
+                              |     "in": "query",                     +
+                              |     "name": "z",                       +
+                              |     "schema": {                        +
+                              |         "type": "string",              +
+                              |         "format": "types.attribute_ref"+
+                              |     },                                 +
+                              |     "required": true                   +
+                              | }
+(4 rows)
+
+-- shows `INOUT` function arguments as RPC parameters
+select key, jsonb_pretty(value)
+from jsonb_each(postgrest_openapi_spec('{test}')->'components'->'parameters')
+where key like 'rpcParam.has_inout_parameters.%';
+               key               |              jsonb_pretty               
+---------------------------------+-----------------------------------------
+ rpcParam.has_inout_parameters.o | {                                      +
+                                 |     "in": "query",                     +
+                                 |     "name": "o",                       +
+                                 |     "schema": {                        +
+                                 |         "type": "integer",             +
+                                 |         "format": "integer"            +
+                                 |     },                                 +
+                                 |     "required": false                  +
+                                 | }
+ rpcParam.has_inout_parameters.x | {                                      +
+                                 |     "in": "query",                     +
+                                 |     "name": "x",                       +
+                                 |     "schema": {                        +
+                                 |         "type": "integer",             +
+                                 |         "format": "integer"            +
+                                 |     },                                 +
+                                 |     "required": true                   +
+                                 | }
+ rpcParam.has_inout_parameters.y | {                                      +
+                                 |     "in": "query",                     +
+                                 |     "name": "y",                       +
+                                 |     "schema": {                        +
+                                 |         "type": "string",              +
+                                 |         "format": "text[]"             +
+                                 |     },                                 +
+                                 |     "required": true                   +
+                                 | }
+ rpcParam.has_inout_parameters.z | {                                      +
+                                 |     "in": "query",                     +
+                                 |     "name": "z",                       +
+                                 |     "schema": {                        +
+                                 |         "type": "string",              +
+                                 |         "format": "types.attribute_ref"+
+                                 |     },                                 +
+                                 |     "required": true                   +
+                                 | }
+(4 rows)
+
+-- shows `VARIADIC` function arguments as RPC parameters
+select key, jsonb_pretty(value)
+from jsonb_each(postgrest_openapi_spec('{test}')->'components'->'parameters')
+where key like 'rpcParam.has_variadic_parameter.%';
+                key                |           jsonb_pretty            
+-----------------------------------+-----------------------------------
+ rpcParam.has_variadic_parameter.x | {                                +
+                                   |     "in": "query",               +
+                                   |     "name": "x",                 +
+                                   |     "schema": {                  +
+                                   |         "type": "integer",       +
+                                   |         "format": "integer"      +
+                                   |     },                           +
+                                   |     "required": true             +
+                                   | }
+ rpcParam.has_variadic_parameter.y | {                                +
+                                   |     "in": "query",               +
+                                   |     "name": "y",                 +
+                                   |     "schema": {                  +
+                                   |         "type": "array",         +
+                                   |         "items": {               +
+                                   |             "type": "string",    +
+                                   |             "format": "integer[]"+
+                                   |         }                        +
+                                   |     },                           +
+                                   |     "required": true             +
+                                   | }
+(2 rows)
+
