@@ -695,6 +695,7 @@ create or replace function oas_build_response_objects(schemas text[])
 returns jsonb language sql stable as
 $$
 select oas_build_response_objects_from_tables(schemas) ||
+       oas_build_response_objects_from_function_return_types(schemas) ||
        oas_build_response_objects_common();
 $$;
 
@@ -787,6 +788,62 @@ from (
   where table_schema = any(schemas)
     and (is_table or is_view)
   group by table_schema, table_full_name, insertable, is_table, is_view
+) as x
+$$;
+
+create or replace function oas_build_response_objects_from_function_return_types(schemas text[])
+returns jsonb language sql stable as
+$$
+select jsonb_object_agg(x.not_empty, x.not_empty_response)
+from (
+  select 'rpc.' || function_full_name as not_empty,
+    oas_response_object(
+      description := 'Media types for RPC ' || function_full_name,
+      content := jsonb_build_object(
+        'application/json',
+        case when return_type_is_set then
+          oas_media_type_object(
+            schema := oas_schema_object(
+              type := 'array',
+              items := return_type_reference_schema
+            )
+          )
+        else
+          oas_media_type_object(
+            schema := return_type_reference_schema
+          )
+        end,
+        'application/vnd.pgrst.object+json',
+        oas_media_type_object(
+          schema := return_type_reference_schema
+        ),
+        'application/vnd.pgrst.object+json;nulls=stripped',
+        oas_media_type_object(
+          schema := return_type_reference_schema
+        ),
+        'text/csv',
+        oas_media_type_object(
+          schema := oas_schema_object(
+            type := 'string',
+            format := 'csv'
+          )
+        )
+      )
+    ) as not_empty_response
+  from (
+    select *,
+      -- Build the reference either to the table/composite return type or the non-composite return type
+      case when return_type_is_composite then
+        oas_build_reference_to_schemas(return_type_composite_full_name)
+      else
+        oas_build_reference_to_schemas('rpc.' || function_full_name)
+      end as return_type_reference_schema
+    from (
+      select function_full_name, return_type_is_set, return_type_is_composite, return_type_composite_full_name
+      from postgrest_get_all_functions(schemas)
+      group by function_full_name, return_type_is_set, return_type_is_composite, return_type_composite_full_name
+    ) _
+  ) _
 ) as x
 $$;
 
