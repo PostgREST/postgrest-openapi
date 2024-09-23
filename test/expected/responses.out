@@ -290,3 +290,194 @@ select postgrest_openapi_spec('{test}')->'components'->'responses' ? 'mayBeEmpty
  f
 (1 row)
 
+-- Functions
+-- Returning composite types
+-- defines an application/json response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.get_attribute'->'content'->'application/json');
+                        jsonb_pretty                        
+------------------------------------------------------------
+ {                                                         +
+     "schema": {                                           +
+         "$ref": "#/components/schemas/types.attribute_ret"+
+     }                                                     +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.get_attribute'->'content'->'application/vnd.pgrst.object+json');
+                        jsonb_pretty                        
+------------------------------------------------------------
+ {                                                         +
+     "schema": {                                           +
+         "$ref": "#/components/schemas/types.attribute_ret"+
+     }                                                     +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json;nulls=stripped response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.get_attribute'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+                        jsonb_pretty                        
+------------------------------------------------------------
+ {                                                         +
+     "schema": {                                           +
+         "$ref": "#/components/schemas/types.attribute_ret"+
+     }                                                     +
+ }
+(1 row)
+
+-- defines a text/csv response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.get_attribute'->'content'->'text/csv');
+       jsonb_pretty        
+---------------------------
+ {                        +
+     "schema": {          +
+         "type": "string",+
+         "format": "csv"  +
+     }                    +
+ }
+(1 row)
+
+-- Returning SET OF composite types
+-- defines an application/json response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.get_products_by_size'->'content'->'application/json');
+                    jsonb_pretty                     
+-----------------------------------------------------
+ {                                                  +
+     "schema": {                                    +
+         "type": "array",                           +
+         "items": {                                 +
+             "$ref": "#/components/schemas/products"+
+         }                                          +
+     }                                              +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.get_products_by_size'->'content'->'application/vnd.pgrst.object+json');
+                  jsonb_pretty                   
+-------------------------------------------------
+ {                                              +
+     "schema": {                                +
+         "$ref": "#/components/schemas/products"+
+     }                                          +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json;nulls=stripped response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.get_products_by_size'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+                  jsonb_pretty                   
+-------------------------------------------------
+ {                                              +
+     "schema": {                                +
+         "$ref": "#/components/schemas/products"+
+     }                                          +
+ }
+(1 row)
+
+-- defines a text/csv response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.get_products_by_size'->'content'->'text/csv');
+       jsonb_pretty        
+---------------------------
+ {                        +
+     "schema": {          +
+         "type": "string",+
+         "format": "csv"  +
+     }                    +
+ }
+(1 row)
+
+-- Returning non-composite types
+-- defines an application/json response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.returns_inout_out'->'content'->'application/json');
+                         jsonb_pretty                         
+--------------------------------------------------------------
+ {                                                           +
+     "schema": {                                             +
+         "$ref": "#/components/schemas/rpc.returns_inout_out"+
+     }                                                       +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.returns_inout_out'->'content'->'application/vnd.pgrst.object+json');
+                         jsonb_pretty                         
+--------------------------------------------------------------
+ {                                                           +
+     "schema": {                                             +
+         "$ref": "#/components/schemas/rpc.returns_inout_out"+
+     }                                                       +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json;nulls=stripped response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.returns_inout_out'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+                         jsonb_pretty                         
+--------------------------------------------------------------
+ {                                                           +
+     "schema": {                                             +
+         "$ref": "#/components/schemas/rpc.returns_inout_out"+
+     }                                                       +
+ }
+(1 row)
+
+-- defines a text/csv response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.returns_inout_out'->'content'->'text/csv');
+       jsonb_pretty        
+---------------------------
+ {                        +
+     "schema": {          +
+         "type": "string",+
+         "format": "csv"  +
+     }                    +
+ }
+(1 row)
+
+-- Returning SET OF non-composite types
+-- defines an application/json response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.returns_table'->'content'->'application/json');
+                         jsonb_pretty                         
+--------------------------------------------------------------
+ {                                                           +
+     "schema": {                                             +
+         "type": "array",                                    +
+         "items": {                                          +
+             "$ref": "#/components/schemas/rpc.returns_table"+
+         }                                                   +
+     }                                                       +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.returns_table'->'content'->'application/vnd.pgrst.object+json');
+                       jsonb_pretty                       
+----------------------------------------------------------
+ {                                                       +
+     "schema": {                                         +
+         "$ref": "#/components/schemas/rpc.returns_table"+
+     }                                                   +
+ }
+(1 row)
+
+-- defines an application/vnd.pgrst.object+json;nulls=stripped response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.returns_table'->'content'->'application/vnd.pgrst.object+json;nulls=stripped');
+                       jsonb_pretty                       
+----------------------------------------------------------
+ {                                                       +
+     "schema": {                                         +
+         "$ref": "#/components/schemas/rpc.returns_table"+
+     }                                                   +
+ }
+(1 row)
+
+-- defines a text/csv response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'responses'->'rpc.returns_table'->'content'->'text/csv');
+       jsonb_pretty        
+---------------------------
+ {                        +
+     "schema": {          +
+         "type": "string",+
+         "format": "csv"  +
+     }                    +
+ }
+(1 row)
+

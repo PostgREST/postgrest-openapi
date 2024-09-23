@@ -17,3 +17,18 @@ where key like 'rowFilter.products.%';
 select key, jsonb_pretty(value)
 from jsonb_each(postgrest_openapi_spec('{test}')->'components'->'parameters')
 where key like 'rowFilter.big_products.%';
+
+-- shows `IN` function arguments as RPC parameters
+select key, jsonb_pretty(value)
+from jsonb_each(postgrest_openapi_spec('{test}')->'components'->'parameters')
+where key like 'rpcParam.has_in_parameters.%';
+
+-- shows `INOUT` function arguments as RPC parameters
+select key, jsonb_pretty(value)
+from jsonb_each(postgrest_openapi_spec('{test}')->'components'->'parameters')
+where key like 'rpcParam.has_inout_parameters.%';
+
+-- shows `VARIADIC` function arguments as RPC parameters
+select key, jsonb_pretty(value)
+from jsonb_each(postgrest_openapi_spec('{test}')->'components'->'parameters')
+where key like 'rpcParam.has_variadic_parameter.%';

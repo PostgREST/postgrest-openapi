@@ -250,3 +250,62 @@ where value->>'$ref' not like '#/components/parameters/rowFilter.big_products.%'
 
 -- does not show a DELETE operation object for non auto-updatable views
 select postgrest_openapi_spec('{test}')->'paths'->'/non_auto_updatable' ? 'delete' as value;
+
+-- Functions
+-- GET operation object
+
+-- shows the function name as tag
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/get_products_by_size'->'get'->'tags');
+
+-- uses a reference for the 200 HTTP code response
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/get_products_by_size'->'get'->'responses'->'200');
+
+-- uses a reference for the 206 HTTP code response on `RETURNS SET OF` functions
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/get_products_by_size'->'get'->'responses'->'206');
+
+-- uses a reference for error responses
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/get_products_by_size'->'get'->'responses'->'default');
+
+-- shows the first line of the comment on the table as summary
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/get_products_by_size'->'get'->'summary');
+
+-- shows the second line of the comment on the table as description
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/get_products_by_size'->'get'->'description');
+
+-- uses references for common parameters on `RETURNS <composite type>` functions
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/rpc/get_attribute'->'get'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rpcParam.get_attribute.%';
+
+-- uses references for common parameters on `RETURNS TABLE` functions
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/rpc/returns_table'->'get'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rpcParam.returns_table.%';
+
+-- uses references for common parameters on functions with INOUT/OUT parameters
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/rpc/returns_inout_out'->'get'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rpcParam.returns_inout_out.%';
+
+-- does not use a reference for the 206 HTTP code response on functions that do not return `SET OF`
+select postgrest_openapi_spec('{test}')->'paths'->'/rpc/get_attribute'->'get'->'responses' ? '206' as value;
+
+-- does not use a reference for common parameters (except for prefer headers) on functions that do not return composite types
+select value
+from jsonb_array_elements(postgrest_openapi_spec('{test}')->'paths'->'/rpc/returns_simple_type'->'get'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rpcParam.returns_simple_type.%';
+
+-- shows a function with a single unnamed parameter of accepted types
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/single_unnamed_json_param'->'get'->'tags');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/single_unnamed_jsonb_param'->'get'->'tags');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/single_unnamed_text_param'->'get'->'tags');
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'paths'->'/rpc/single_unnamed_xml_param'->'get'->'tags');
+
+-- does not show a function with a single unnamed parameter of non-accepted types
+select postgrest_openapi_spec('{test}')->'paths' ? '/rpc/single_unnamed_unrecognized_param' as value;
+
+-- does not show a function with unnamed parameters
+select postgrest_openapi_spec('{test}')->'paths' ? '/rpc/unnamed_params' as value;
+
+-- does not show a function with named and unnamed parameters
+select postgrest_openapi_spec('{test}')->'paths' ? '/rpc/named_and_unnamed_params' as value;

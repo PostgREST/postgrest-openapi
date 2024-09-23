@@ -287,7 +287,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- Functions
--- Types inside arguments
+-- Composite types inside arguments
 -- detects composite types as objects
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_arg'->'type');
  jsonb_pretty 
@@ -356,7 +356,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
  }
 (1 row)
 
--- Types inside returning values
+-- Composite types inside returning values
 -- detects composite types as objects
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_ret'->'type');
  jsonb_pretty 
@@ -423,6 +423,297 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
  {                                                 +
      "$ref": "#/components/schemas/types.color_ret"+
  }
+(1 row)
+
+-- Non-composite return values
+-- detects a function that returns a simple type
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_simple_type');
+     jsonb_pretty      
+-----------------------
+ {                    +
+     "type": "string",+
+     "format": "text" +
+ }
+(1 row)
+
+-- detects a function that returns a simple array type
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_simple_type_arr');
+       jsonb_pretty        
+---------------------------
+ {                        +
+     "type": "array",     +
+     "items": {           +
+         "type": "string",+
+         "format": "text" +
+     },                   +
+     "format": "text[]"   +
+ }
+(1 row)
+
+-- detects a function that returns table
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_table');
+                          jsonb_pretty                          
+----------------------------------------------------------------
+ {                                                             +
+     "type": "object",                                         +
+     "properties": {                                           +
+         "num": {                                              +
+             "type": "integer",                                +
+             "format": "integer"                               +
+         },                                                    +
+         "val": {                                              +
+             "type": "string",                                 +
+             "format": "text"                                  +
+         },                                                    +
+         "comp": {                                             +
+             "$ref": "#/components/schemas/types.dimension_ref"+
+         }                                                     +
+     }                                                         +
+ }
+(1 row)
+
+-- detects a function that returns table with array columns
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_table_arr');
+                            jsonb_pretty                            
+--------------------------------------------------------------------
+ {                                                                 +
+     "type": "object",                                             +
+     "properties": {                                               +
+         "num": {                                                  +
+             "type": "array",                                      +
+             "items": {                                            +
+                 "type": "integer",                                +
+                 "format": "integer"                               +
+             },                                                    +
+             "format": "integer[]"                                 +
+         },                                                        +
+         "val": {                                                  +
+             "type": "array",                                      +
+             "items": {                                            +
+                 "type": "string",                                 +
+                 "format": "text"                                  +
+             },                                                    +
+             "format": "text[]"                                    +
+         },                                                        +
+         "comp": {                                                 +
+             "type": "array",                                      +
+             "items": {                                            +
+                 "$ref": "#/components/schemas/types.dimension_ref"+
+             },                                                    +
+             "format": "types.dimension_ref[]"                     +
+         }                                                         +
+     }                                                             +
+ }
+(1 row)
+
+-- detects a function that returns a record with inout arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout');
+                        jsonb_pretty                        
+------------------------------------------------------------
+ {                                                         +
+     "type": "object",                                     +
+     "properties": {                                       +
+         "y": {                                            +
+             "type": "string",                             +
+             "format": "text"                              +
+         },                                                +
+         "z": {                                            +
+             "$ref": "#/components/schemas/types.color_ref"+
+         }                                                 +
+     }                                                     +
+ }
+(1 row)
+
+-- detects a function that returns a record with inout array arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout_arr');
+                          jsonb_pretty                          
+----------------------------------------------------------------
+ {                                                             +
+     "type": "object",                                         +
+     "properties": {                                           +
+         "y": {                                                +
+             "type": "array",                                  +
+             "items": {                                        +
+                 "type": "string",                             +
+                 "format": "text"                              +
+             },                                                +
+             "format": "text[]"                                +
+         },                                                    +
+         "z": {                                                +
+             "type": "array",                                  +
+             "items": {                                        +
+                 "$ref": "#/components/schemas/types.color_ref"+
+             },                                                +
+             "format": "types.color_ref[]"                     +
+         }                                                     +
+     }                                                         +
+ }
+(1 row)
+
+-- detects a function that returns a record with out arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_out');
+                        jsonb_pretty                        
+------------------------------------------------------------
+ {                                                         +
+     "type": "object",                                     +
+     "properties": {                                       +
+         "a": {                                            +
+             "type": "string",                             +
+             "format": "text"                              +
+         },                                                +
+         "b": {                                            +
+             "$ref": "#/components/schemas/types.color_ref"+
+         }                                                 +
+     }                                                     +
+ }
+(1 row)
+
+-- detects a function that returns a record with out array arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_out_arr');
+                          jsonb_pretty                          
+----------------------------------------------------------------
+ {                                                             +
+     "type": "object",                                         +
+     "properties": {                                           +
+         "a": {                                                +
+             "type": "array",                                  +
+             "items": {                                        +
+                 "type": "string",                             +
+                 "format": "text"                              +
+             },                                                +
+             "format": "text[]"                                +
+         },                                                    +
+         "b": {                                                +
+             "type": "array",                                  +
+             "items": {                                        +
+                 "$ref": "#/components/schemas/types.color_ref"+
+             },                                                +
+             "format": "types.color_ref[]"                     +
+         }                                                     +
+     }                                                         +
+ }
+(1 row)
+
+-- detects a function that returns a record with inout and out arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout_out');
+                        jsonb_pretty                        
+------------------------------------------------------------
+ {                                                         +
+     "type": "object",                                     +
+     "properties": {                                       +
+         "y": {                                            +
+             "type": "string",                             +
+             "format": "text"                              +
+         },                                                +
+         "z": {                                            +
+             "$ref": "#/components/schemas/types.color_ref"+
+         }                                                 +
+     }                                                     +
+ }
+(1 row)
+
+-- detects a function that returns a record with inout and out array arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout_out_arr');
+                          jsonb_pretty                          
+----------------------------------------------------------------
+ {                                                             +
+     "type": "object",                                         +
+     "properties": {                                           +
+         "y": {                                                +
+             "type": "array",                                  +
+             "items": {                                        +
+                 "type": "string",                             +
+                 "format": "text"                              +
+             },                                                +
+             "format": "text[]"                                +
+         },                                                    +
+         "z": {                                                +
+             "type": "array",                                  +
+             "items": {                                        +
+                 "$ref": "#/components/schemas/types.color_ref"+
+             },                                                +
+             "format": "types.color_ref[]"                     +
+         }                                                     +
+     }                                                         +
+ }
+(1 row)
+
+-- detects a function that returns an unknown record as a free-form object
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_unknown_record');
+      jsonb_pretty      
+------------------------
+ {                     +
+     "type": "object", +
+     "format": "record"+
+ }
+(1 row)
+
+-- detects a function with a single unnamed json parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_json_param');
+     jsonb_pretty      
+-----------------------
+ {                    +
+     "type": "object",+
+     "format": "json" +
+ }
+(1 row)
+
+-- detects a function with a single unnamed jsonb parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_jsonb_param');
+     jsonb_pretty      
+-----------------------
+ {                    +
+     "type": "object",+
+     "format": "jsonb"+
+ }
+(1 row)
+
+-- detects a function with a single unnamed text parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_text_param');
+     jsonb_pretty      
+-----------------------
+ {                    +
+     "type": "string",+
+     "format": "text" +
+ }
+(1 row)
+
+-- detects a function with a single unnamed xml parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_xml_param');
+     jsonb_pretty      
+-----------------------
+ {                    +
+     "type": "string",+
+     "format": "xml"  +
+ }
+(1 row)
+
+-- ignores a function with a single unnamed unrecognized parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
+ jsonb_pretty 
+--------------
+ 
+(1 row)
+
+-- ignores a function with unnamed parameters
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
+ jsonb_pretty 
+--------------
+ 
+(1 row)
+
+-- ignores a function with named and unnamed parameters
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
+ jsonb_pretty 
+--------------
+ 
+(1 row)
+
+-- ignores a function outside of the exposed schemas
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.private.secret_function');
+ jsonb_pretty 
+--------------
+ 
 (1 row)
 
 -- Common

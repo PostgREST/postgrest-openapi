@@ -50,7 +50,8 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 
 -- Functions
 
--- Types inside arguments
+-- Composite types inside arguments
+
 -- detects composite types as objects
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_arg'->'type');
 
@@ -66,7 +67,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 -- references a composite type column from an array composite type inside the items property
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_arg'->'properties'->'colors'->'items');
 
--- Types inside returning values
+-- Composite types inside returning values
 
 -- detects composite types as objects
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_ret'->'type');
@@ -82,6 +83,65 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 
 -- references a composite type column from an array composite type inside the items property
 select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_ret'->'properties'->'colors'->'items');
+
+-- Non-composite return values
+
+-- detects a function that returns a simple type
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_simple_type');
+
+-- detects a function that returns a simple array type
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_simple_type_arr');
+
+-- detects a function that returns table
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_table');
+
+-- detects a function that returns table with array columns
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_table_arr');
+
+-- detects a function that returns a record with inout arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout');
+
+-- detects a function that returns a record with inout array arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout_arr');
+
+-- detects a function that returns a record with out arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_out');
+
+-- detects a function that returns a record with out array arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_out_arr');
+
+-- detects a function that returns a record with inout and out arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout_out');
+
+-- detects a function that returns a record with inout and out array arguments
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout_out_arr');
+
+-- detects a function that returns an unknown record as a free-form object
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_unknown_record');
+
+-- detects a function with a single unnamed json parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_json_param');
+
+-- detects a function with a single unnamed jsonb parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_jsonb_param');
+
+-- detects a function with a single unnamed text parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_text_param');
+
+-- detects a function with a single unnamed xml parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_xml_param');
+
+-- ignores a function with a single unnamed unrecognized parameter
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
+
+-- ignores a function with unnamed parameters
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
+
+-- ignores a function with named and unnamed parameters
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
+
+-- ignores a function outside of the exposed schemas
+select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.private.secret_function');
 
 -- Common
 
