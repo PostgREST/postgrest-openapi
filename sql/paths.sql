@@ -4,7 +4,8 @@ create or replace function oas_build_paths(schemas text[])
 returns jsonb language sql stable as
 $$
   select oas_build_path_item_root() ||
-         oas_build_path_items_from_tables(schemas);
+         oas_build_path_items_from_tables(schemas) ||
+         oas_build_path_items_from_functions(schemas);
 $$;
 
 create or replace function oas_build_path_items_from_tables(schemas text[])
@@ -131,6 +132,70 @@ from (
    order by table_schema, table_name, column_position
   ) _
   group by table_schema, table_name, table_full_name, table_description, insertable, updatable, deletable
+) x;
+$$;
+
+create or replace function oas_build_path_items_from_functions(schemas text[])
+returns jsonb language sql stable as
+$$
+select jsonb_object_agg(x.path, x.oas_path_item)
+from (
+  select '/rpc/' || function_name as path,
+    oas_path_item_object(
+      get :=oas_operation_object(
+        summary := (postgrest_unfold_comment(function_description))[1],
+        description := (postgrest_unfold_comment(function_description))[2],
+        tags := array['(rpc) ' || function_name],
+        parameters :=
+          coalesce(
+            jsonb_agg(
+              oas_build_reference_to_parameters(format('rpcParam.%1$s.%2$s', function_full_name, argument_name))
+            ) filter ( where argument_name <> '' and (argument_is_in or argument_is_inout or argument_is_variadic)),
+            '[]'
+          ) ||
+          case when return_type_is_table or return_type_is_out or return_type_composite_relid <> 0 then
+            jsonb_build_array(
+              oas_build_reference_to_parameters('select'),
+              oas_build_reference_to_parameters('order'),
+              oas_build_reference_to_parameters('limit'),
+              oas_build_reference_to_parameters('offset'),
+              oas_build_reference_to_parameters('or'),
+              oas_build_reference_to_parameters('and'),
+              oas_build_reference_to_parameters('not.or'),
+              oas_build_reference_to_parameters('not.and'),
+              oas_build_reference_to_parameters('range'),
+              oas_build_reference_to_parameters('preferGet')
+            )
+          else
+            jsonb_build_array(
+              oas_build_reference_to_parameters('preferGet')
+            )
+          end,
+        responses :=
+          case when return_type_is_set then
+            jsonb_build_object(
+              '200',
+              oas_build_reference_to_responses('rpc.' || function_full_name, 'OK'),
+              '206',
+              oas_build_reference_to_responses('rpc.' || function_full_name, 'Partial Content')
+            )
+          else
+            jsonb_build_object(
+              '200',
+              oas_build_reference_to_responses('rpc.' || function_full_name, 'OK')
+            )
+          end ||
+          jsonb_build_object(
+            'default',
+            oas_build_reference_to_responses('defaultError', 'Error')
+          )
+      )
+    ) as oas_path_item
+  from (
+    select function_name, function_full_name, function_description, return_type_name, return_type_is_set, return_type_is_table, return_type_is_out, return_type_composite_relid, argument_name, argument_is_in, argument_is_inout, argument_is_variadic
+    from postgrest_get_all_functions(schemas)
+  ) _
+  group by function_name, function_full_name, function_description, return_type_name, return_type_is_set, return_type_is_table, return_type_is_out, return_type_composite_relid
 ) x;
 $$;
 
