@@ -1,13 +1,13 @@
 -- Tables
 -- detects tables as objects
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'type');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'products'->'type');
  jsonb_pretty 
 --------------
  "object"
 (1 row)
 
 -- detects columns with enum types as an enum property
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'properties'->'size');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'products'->'properties'->'size');
         jsonb_pretty        
 ----------------------------
  {                         +
@@ -24,7 +24,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- references a composite type column from a table to a component definition
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'properties'->'attr');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'products'->'properties'->'attr');
                     jsonb_pretty                    
 ----------------------------------------------------
  {                                                 +
@@ -33,7 +33,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- identifies the required columns
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'required');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'products'->'required');
    jsonb_pretty    
 -------------------
  [                +
@@ -45,21 +45,21 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects comments done on a table and shows it as description
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'description');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'products'->'description');
                               jsonb_pretty                               
 -------------------------------------------------------------------------
  "Products summary\n\nProducts description\nthat spans\nmultiple lines."
 (1 row)
 
 -- detects comments done on a table column and shows it as description
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'products'->'properties'->'id'->'description');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'products'->'properties'->'id'->'description');
        jsonb_pretty        
 ---------------------------
  "identifier of a product"
 (1 row)
 
 -- maps sql types to OpenAPI types correctly
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'openapi_types');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'openapi_types');
                  jsonb_pretty                  
 -----------------------------------------------
  {                                            +
@@ -191,21 +191,21 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- does not show tables outside the exposed schema
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'secret_table');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'secret_table');
  jsonb_pretty 
 --------------
  
 (1 row)
 
 -- detects composite types as objects
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'type');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute'->'type');
  jsonb_pretty 
 --------------
  "object"
 (1 row)
 
 -- references a composite type column from another composite type to a component definition
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'dim');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'dim');
                     jsonb_pretty                    
 ----------------------------------------------------
  {                                                 +
@@ -214,7 +214,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a composite type inside another composite type
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.dimension');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.dimension');
           jsonb_pretty           
 ---------------------------------
  {                              +
@@ -237,7 +237,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects an array composite type inside another composite type
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.color');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.color');
             jsonb_pretty            
 ------------------------------------
  {                                 +
@@ -257,28 +257,28 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- does not show a composite type that is not used by an exposed table
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.hiddentype');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.hiddentype');
  jsonb_pretty 
 --------------
  
 (1 row)
 
 -- detects comments done on a composite type and shows it as description
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'description');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute'->'description');
                                jsonb_pretty                                
 ---------------------------------------------------------------------------
  "Attribute summary\n\nAttribute description\nthat spans\nmultiple lines."
 (1 row)
 
 -- detects comments done on a composite type column and shows it as description
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'other'->'description');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'other'->'description');
               jsonb_pretty               
 -----------------------------------------
  "other information about the attribute"
 (1 row)
 
 -- references a composite type column from an array composite type inside the items property
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'colors'->'items');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute'->'properties'->'colors'->'items');
                   jsonb_pretty                  
 ------------------------------------------------
  {                                             +
@@ -289,14 +289,14 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 -- Functions
 -- Composite types inside arguments
 -- detects composite types as objects
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_arg'->'type');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute_arg'->'type');
  jsonb_pretty 
 --------------
  "object"
 (1 row)
 
 -- references a composite type column from another composite type to a component definition
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_arg'->'properties'->'dim');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute_arg'->'properties'->'dim');
                       jsonb_pretty                      
 --------------------------------------------------------
  {                                                     +
@@ -305,7 +305,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a composite type inside another composite type
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.dimension_arg');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.dimension_arg');
           jsonb_pretty           
 ---------------------------------
  {                              +
@@ -328,7 +328,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects an array composite type inside another composite type
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.color_arg');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.color_arg');
             jsonb_pretty            
 ------------------------------------
  {                                 +
@@ -348,7 +348,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- references a composite type column from an array composite type inside the items property
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_arg'->'properties'->'colors'->'items');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute_arg'->'properties'->'colors'->'items');
                     jsonb_pretty                    
 ----------------------------------------------------
  {                                                 +
@@ -358,14 +358,14 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 
 -- Composite types inside returning values
 -- detects composite types as objects
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_ret'->'type');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute_ret'->'type');
  jsonb_pretty 
 --------------
  "object"
 (1 row)
 
 -- references a composite type column from another composite type to a component definition
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_ret'->'properties'->'dim');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute_ret'->'properties'->'dim');
                       jsonb_pretty                      
 --------------------------------------------------------
  {                                                     +
@@ -374,7 +374,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a composite type inside another composite type
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.dimension_ret');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.dimension_ret');
           jsonb_pretty           
 ---------------------------------
  {                              +
@@ -397,7 +397,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects an array composite type inside another composite type
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.color_ret');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.color_ret');
             jsonb_pretty            
 ------------------------------------
  {                                 +
@@ -417,7 +417,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- references a composite type column from an array composite type inside the items property
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'types.attribute_ret'->'properties'->'colors'->'items');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'types.attribute_ret'->'properties'->'colors'->'items');
                     jsonb_pretty                    
 ----------------------------------------------------
  {                                                 +
@@ -427,7 +427,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 
 -- Non-composite return values
 -- detects a function that returns a simple type
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_simple_type');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_simple_type');
      jsonb_pretty      
 -----------------------
  {                    +
@@ -437,7 +437,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns a simple array type
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_simple_type_arr');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_simple_type_arr');
        jsonb_pretty        
 ---------------------------
  {                        +
@@ -451,7 +451,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns table
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_table');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_table');
                           jsonb_pretty                          
 ----------------------------------------------------------------
  {                                                             +
@@ -473,7 +473,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns table with array columns
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_table_arr');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_table_arr');
                             jsonb_pretty                            
 --------------------------------------------------------------------
  {                                                                 +
@@ -507,7 +507,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns a record with inout arguments
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_inout');
                         jsonb_pretty                        
 ------------------------------------------------------------
  {                                                         +
@@ -525,7 +525,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns a record with inout array arguments
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout_arr');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_inout_arr');
                           jsonb_pretty                          
 ----------------------------------------------------------------
  {                                                             +
@@ -551,7 +551,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns a record with out arguments
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_out');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_out');
                         jsonb_pretty                        
 ------------------------------------------------------------
  {                                                         +
@@ -569,7 +569,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns a record with out array arguments
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_out_arr');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_out_arr');
                           jsonb_pretty                          
 ----------------------------------------------------------------
  {                                                             +
@@ -595,7 +595,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns a record with inout and out arguments
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout_out');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_inout_out');
                         jsonb_pretty                        
 ------------------------------------------------------------
  {                                                         +
@@ -613,7 +613,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns a record with inout and out array arguments
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_inout_out_arr');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_inout_out_arr');
                           jsonb_pretty                          
 ----------------------------------------------------------------
  {                                                             +
@@ -639,7 +639,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function that returns an unknown record as a free-form object
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.returns_unknown_record');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.returns_unknown_record');
       jsonb_pretty      
 ------------------------
  {                     +
@@ -649,7 +649,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function with a single unnamed json parameter
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_json_param');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.single_unnamed_json_param');
      jsonb_pretty      
 -----------------------
  {                    +
@@ -659,7 +659,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function with a single unnamed jsonb parameter
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_jsonb_param');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.single_unnamed_jsonb_param');
      jsonb_pretty      
 -----------------------
  {                    +
@@ -669,7 +669,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function with a single unnamed text parameter
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_text_param');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.single_unnamed_text_param');
      jsonb_pretty      
 -----------------------
  {                    +
@@ -679,7 +679,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- detects a function with a single unnamed xml parameter
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_xml_param');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.single_unnamed_xml_param');
      jsonb_pretty      
 -----------------------
  {                    +
@@ -689,28 +689,28 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 (1 row)
 
 -- ignores a function with a single unnamed unrecognized parameter
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
  jsonb_pretty 
 --------------
  
 (1 row)
 
 -- ignores a function with unnamed parameters
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
  jsonb_pretty 
 --------------
  
 (1 row)
 
 -- ignores a function with named and unnamed parameters
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.single_unnamed_unrecognized_param');
  jsonb_pretty 
 --------------
  
 (1 row)
 
 -- ignores a function outside of the exposed schemas
-select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'rpc.private.secret_function');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.private.secret_function');
  jsonb_pretty 
 --------------
  
@@ -719,7 +719,7 @@ select jsonb_pretty(postgrest_openapi_spec('{test}')->'components'->'schemas'->'
 -- Common
 -- defines all the available prefer headers
 select key, jsonb_pretty(value)
-from jsonb_each(postgrest_openapi_spec('{test}')->'components'->'schemas')
+from jsonb_each(get_openapi_document('{test}')->'components'->'schemas')
 where key like 'header.prefer%';
            key            |                               jsonb_pretty                               
 --------------------------+--------------------------------------------------------------------------
