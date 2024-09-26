@@ -256,5 +256,31 @@ returns void as $$
   ;
 $$ language sql;
 
--- Emulate PostgREST search_path setting
-alter database contrib_regression set search_path = test, public;
+-- Table that stores openapi documents for different schemas. It speeds up the testing process.
+create table public.postgrest_openapi(
+  schemas text[] primary key,
+  document jsonb
+);
+
+-- Wrapper function to retrieve openapi documents according to the schema
+create or replace function public.get_openapi_document(schemas text[])
+returns jsonb
+immutable language sql as
+$$
+  select document
+  from public.postgrest_openapi p
+  where p.schemas = $1;
+$$;
+
+create or replace function public.insert_openapi_document(schemas text[])
+returns void
+language plpgsql as
+$$begin
+  -- Before inserting the openapi document, we emulate the PostgREST search path
+  perform set_config('search_path', array_to_string(schemas || '{public}', ','), true);
+  insert into public.postgrest_openapi
+  select schemas, public.postgrest_openapi_spec(schemas);
+end$$;
+
+select public.insert_openapi_document('{test}');
+select public.insert_openapi_document('{types}');
