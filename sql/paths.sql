@@ -189,13 +189,73 @@ from (
             'default',
             oas_build_reference_to_responses('defaultError', 'Error')
           )
+      ),
+      post := oas_operation_object(
+        summary := (postgrest_unfold_comment(function_description))[1],
+        description := (postgrest_unfold_comment(function_description))[2],
+        tags := array['(rpc) ' || function_name],
+        requestBody := case when argument_input_qty > 0 then oas_build_reference_to_request_bodies('rpc.' || function_full_name) end,
+        parameters :=
+          -- TODO: The row filters for functions returning TABLE, OUT, INOUT and composite types should also work for the GET path.
+          --       Right now they're not included in GET, because the argument names (in rpcParams) could clash with the name of the return type columns (in rowFilter).
+          coalesce(
+            jsonb_agg(
+              oas_build_reference_to_parameters(format('rowFilter.rpc.%1$s.%2$s', function_full_name, argument_name))
+            ) filter ( where argument_name <> '' and (argument_is_inout or argument_is_out or argument_is_table)),
+            '[]'
+          ) ||
+          return_composite_param_ref ||
+          case when return_type_is_table or return_type_is_out or return_type_composite_relid <> 0 then
+            jsonb_build_array(
+              oas_build_reference_to_parameters('select'),
+              oas_build_reference_to_parameters('order'),
+              oas_build_reference_to_parameters('limit'),
+              oas_build_reference_to_parameters('offset'),
+              oas_build_reference_to_parameters('or'),
+              oas_build_reference_to_parameters('and'),
+              oas_build_reference_to_parameters('not.or'),
+              oas_build_reference_to_parameters('not.and'),
+              oas_build_reference_to_parameters('preferPostRpc')
+            )
+          else
+            jsonb_build_array(
+              oas_build_reference_to_parameters('preferPostRpc')
+            )
+          end,
+        responses :=
+          case when return_type_is_set then
+            jsonb_build_object(
+              '200',
+              oas_build_reference_to_responses('rpc.' || function_full_name, 'OK'),
+              '206',
+              oas_build_reference_to_responses('rpc.' || function_full_name, 'Partial Content')
+            )
+          else
+            jsonb_build_object(
+              '200',
+              oas_build_reference_to_responses('rpc.' || function_full_name, 'OK')
+            )
+          end ||
+          jsonb_build_object(
+            'default',
+            oas_build_reference_to_responses('defaultError', 'Error')
+          )
       )
     ) as oas_path_item
   from (
-    select function_name, function_full_name, function_description, return_type_name, return_type_is_set, return_type_is_table, return_type_is_out, return_type_composite_relid, argument_name, argument_is_in, argument_is_inout, argument_is_variadic
-    from postgrest_get_all_functions(schemas)
+    select function_name, function_full_name, function_description, return_type_name, return_type_is_set, return_type_is_table, return_type_is_out, return_type_composite_relid, argument_name, argument_is_in, argument_is_inout, argument_is_out, argument_is_table, argument_is_variadic, argument_input_qty,
+           comp.return_composite_param_ref
+    from postgrest_get_all_functions(schemas) f
+    left join lateral (
+      select coalesce(jsonb_agg(oas_build_reference_to_parameters(format('rowFilter.%1$s.%2$s', table_full_name, column_name))),'[]') as return_composite_param_ref
+      from (
+        select c.table_full_name, c.column_name
+        from postgrest_get_all_tables_and_composite_types() c
+        where f.return_type_composite_relid = c.table_oid
+      ) _
+    ) comp on true
   ) _
-  group by function_name, function_full_name, function_description, return_type_name, return_type_is_set, return_type_is_table, return_type_is_out, return_type_composite_relid
+  group by function_name, function_full_name, function_description, return_type_name, return_type_is_set, return_type_is_table, return_type_is_out, return_type_composite_relid, argument_input_qty, return_composite_param_ref
 ) x;
 $$;
 

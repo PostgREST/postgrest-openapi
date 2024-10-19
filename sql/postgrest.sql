@@ -166,6 +166,7 @@ $$;
 create or replace function postgrest_get_all_functions(schemas text[])
 returns table (
   argument_input_qty int,
+  argument_default_qty int,
   argument_name text,
   argument_reg_type oid,
   argument_type_name text,
@@ -225,6 +226,7 @@ $$
   all_functions AS (
     SELECT
       p.pronargs AS argument_input_qty,
+      p.pronargdefaults AS argument_default_qty,
       COALESCE(pa.name, '') AS argument_name,
       pa.type AS argument_reg_type,
       format_type(ta.oid, NULL::integer) AS argument_type_name,
