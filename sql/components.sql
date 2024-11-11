@@ -19,6 +19,7 @@ returns jsonb language sql stable as
 $$
   select oas_build_component_schemas_from_tables_and_composite_types(schemas) ||
          oas_build_component_schemas_from_functions_return_types(schemas) ||
+         oas_build_component_schemas_from_functions_arguments(schemas) ||
          oas_build_component_schemas_headers()
 $$;
 
@@ -180,6 +181,64 @@ from (
 ) x;
 $$;
 
+create or replace function oas_build_component_schemas_from_functions_arguments(schemas text[])
+returns jsonb language sql stable as
+$$
+with all_functions_with_arguments as (
+  -- Build Component Schemas for IN/INOUT or VARIADIC function arguments
+  select *
+  from postgrest_get_all_functions(schemas)
+  where argument_input_qty > 0
+    and (argument_is_in or argument_is_inout or argument_is_variadic)
+    and argument_name <> ''
+),
+aggregated_function_arguments as (
+  select
+    function_schema,
+    function_full_name,
+    function_description,
+    array_agg(argument_name order by argument_position) filter (where argument_is_required) AS required_arguments,
+    jsonb_object_agg(
+      argument_name,
+      case when argument_item_type_name is null and argument_is_composite then
+        oas_build_reference_to_schemas(argument_composite_full_name)
+      else
+        oas_schema_object(
+          type := postgrest_pgtype_to_oastype(argument_type_name),
+          format := argument_type_name::text,
+          items :=
+            case
+            when argument_item_type_name is null then
+              null
+            when argument_is_composite then
+              oas_build_reference_to_schemas(argument_composite_full_name)
+            else
+              oas_schema_object(
+                type := postgrest_pgtype_to_oastype(argument_item_type_name),
+                format := argument_item_type_name::text
+              )
+            end
+        )
+      end order by argument_position
+    ) as arguments
+  from all_functions_with_arguments
+  group by function_schema, function_full_name, function_description
+)
+select jsonb_object_agg(x.component_name, x.oas_schema)
+from (
+  select
+    'rpc.args.' || function_full_name as component_name,
+    oas_schema_object(
+      description := function_description,
+      properties := coalesce(arguments, '{}'),
+      type := 'object',
+      required := required_arguments
+    ) as oas_schema
+  from
+    aggregated_function_arguments
+) x;
+$$;
+
 create or replace function oas_build_component_schemas_headers()
 returns jsonb language sql stable as
 $$
@@ -304,6 +363,7 @@ returns jsonb language sql stable as
 $$
   select oas_build_component_parameters_query_params_from_tables(schemas) ||
          oas_build_component_parameters_query_params_from_function_args(schemas) ||
+         oas_build_component_parameters_query_params_from_function_ret(schemas) ||
          oas_build_component_parameters_query_params_common() ||
          oas_build_component_parameters_headers_common();
 $$;
@@ -322,11 +382,39 @@ from (
       )
     ) as param_schema
   from (
-     select table_full_name, column_name
-     from postgrest_get_all_tables_and_composite_types()
-     where table_schema = any(schemas)
-       and (is_table or is_view)
+    select table_full_name, column_name
+    from postgrest_get_all_tables_and_composite_types()
+    where (
+        table_schema = any(schemas)
+        and (is_table or is_view)
+      )
+      -- composite type columns can also be used as row filters if a function returns it
+      or exists (
+        select 1
+        from postgrest_get_all_functions(schemas)
+        where return_type_composite_relid = table_oid
+      )
   ) _
+) x;
+$$;
+
+-- Builds "rowFilter"s for functions returning TABLE or INOUT/OUT types
+create or replace function oas_build_component_parameters_query_params_from_function_ret(schemas text[])
+returns jsonb language sql stable as
+$$
+select jsonb_object_agg(x.param_name, x.param_schema)
+from (
+  select format('rowFilter.rpc.%1$s.%2$s', function_full_name, argument_name) as param_name,
+    oas_parameter_object(
+      name := argument_name,
+      "in" := 'query',
+      schema := oas_schema_object(
+        type := 'string'
+      )
+    ) as param_schema
+  from postgrest_get_all_functions(schemas)
+  where argument_name <> ''
+    and (argument_is_inout or argument_is_out or argument_is_table)
 ) x;
 $$;
 
@@ -882,7 +970,8 @@ $$;
 create or replace function oas_build_request_bodies(schemas text[])
 returns jsonb language sql stable as
 $$
-select oas_build_request_bodies_from_tables(schemas);
+select oas_build_request_bodies_from_tables(schemas) ||
+       oas_build_request_bodies_from_functions(schemas);
 $$;
 
 create or replace function oas_build_request_bodies_from_tables(schemas text[])
@@ -925,6 +1014,83 @@ from (
     and (is_table or is_view)
     and insertable
   group by table_schema, table_full_name, insertable
+) as x;
+$$;
+
+create or replace function oas_build_request_bodies_from_functions(schemas text[])
+returns jsonb language sql stable as
+$$
+select jsonb_object_agg('rpc.' || x.function_full_name, x.oas_req_body)
+from (
+  select
+    function_full_name,
+    oas_request_body_object(
+      description := function_full_name,
+      required := argument_default_qty < argument_input_qty,
+      content :=
+        case when argument_input_qty = 1 and (array_agg(argument_name) filter (where argument_is_in or argument_is_inout))[1] = '' then
+          -- Media types according to the single unnamed parameter type
+          case function_input_argument_types[0]
+          when 'bytea'::regtype then
+            jsonb_build_object(
+              'application/octet-stream',
+              oas_media_type_object(
+                "schema" := oas_schema_object(
+                  type := 'string',
+                  format := 'binary'
+                )
+              )
+            )
+          when 'text'::regtype then
+            jsonb_build_object(
+              'text/plain',
+              oas_media_type_object(
+                "schema" := oas_schema_object(
+                  type := 'string'
+                )
+              )
+            )
+          when 'xml'::regtype then
+            jsonb_build_object(
+              'text/xml',
+              oas_media_type_object(
+                "schema" := oas_schema_object(
+                  type := 'string',
+                  format := 'xml'
+                )
+              )
+            )
+          else -- single json or jsonb parameters
+            jsonb_build_object(
+              'application/json',
+              oas_media_type_object(
+                "schema" := '{}' -- json/jsonb types can be any type
+              )
+            )
+          end
+        else
+          jsonb_build_object(
+            'application/json',
+            oas_media_type_object(
+              "schema" := oas_build_reference_to_schemas('rpc.args.' || function_full_name)
+            ),
+            'application/x-www-form-urlencoded',
+            oas_media_type_object(
+              "schema" := oas_build_reference_to_schemas('rpc.args.' || function_full_name)
+            ),
+            'text/csv',
+            oas_media_type_object(
+              "schema" := oas_schema_object(
+                type := 'string',
+                format := 'csv'
+              )
+            )
+          )
+        end
+    ) as oas_req_body
+  from postgrest_get_all_functions(schemas)
+  where argument_input_qty > 0
+  group by function_full_name, argument_input_qty, argument_default_qty, function_input_argument_types
 ) as x;
 $$;
 

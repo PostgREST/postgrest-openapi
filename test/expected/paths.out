@@ -880,3 +880,296 @@ select get_openapi_document('{test}')->'paths' ? '/rpc/named_and_unnamed_params'
  f
 (1 row)
 
+-- POST operation object
+-- shows the function name as tag
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'tags');
+           jsonb_pretty           
+----------------------------------
+ [                               +
+     "(rpc) get_products_by_size"+
+ ]
+(1 row)
+
+-- uses a reference for the 200 HTTP code response
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'responses'->'200');
+                          jsonb_pretty                          
+----------------------------------------------------------------
+ {                                                             +
+     "$ref": "#/components/responses/rpc.get_products_by_size",+
+     "description": "OK"                                       +
+ }
+(1 row)
+
+-- uses a reference for the 206 HTTP code response on `RETURNS SET OF` functions
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'responses'->'206');
+                          jsonb_pretty                          
+----------------------------------------------------------------
+ {                                                             +
+     "$ref": "#/components/responses/rpc.get_products_by_size",+
+     "description": "Partial Content"                          +
+ }
+(1 row)
+
+-- uses a reference for error responses
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'responses'->'default');
+                    jsonb_pretty                    
+----------------------------------------------------
+ {                                                 +
+     "$ref": "#/components/responses/defaultError",+
+     "description": "Error"                        +
+ }
+(1 row)
+
+-- uses a reference for request body when the function has a single unnamed parameter (json, jsonb, text, xml, bytea)
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_json_param'->'post'->'requestBody'->'$ref');
+                        jsonb_pretty                        
+------------------------------------------------------------
+ "#/components/requestBodies/rpc.single_unnamed_json_param"
+(1 row)
+
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_jsonb_param'->'post'->'requestBody'->'$ref');
+                        jsonb_pretty                         
+-------------------------------------------------------------
+ "#/components/requestBodies/rpc.single_unnamed_jsonb_param"
+(1 row)
+
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_text_param'->'post'->'requestBody'->'$ref');
+                        jsonb_pretty                        
+------------------------------------------------------------
+ "#/components/requestBodies/rpc.single_unnamed_text_param"
+(1 row)
+
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_xml_param'->'post'->'requestBody'->'$ref');
+                       jsonb_pretty                        
+-----------------------------------------------------------
+ "#/components/requestBodies/rpc.single_unnamed_xml_param"
+(1 row)
+
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_bytea_param'->'post'->'requestBody'->'$ref');
+                        jsonb_pretty                         
+-------------------------------------------------------------
+ "#/components/requestBodies/rpc.single_unnamed_bytea_param"
+(1 row)
+
+-- uses a reference for the request body when the function has at least one no-default parameter
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/has_one_default_parameter'->'post'->'requestBody'->'$ref');
+                        jsonb_pretty                        
+------------------------------------------------------------
+ "#/components/requestBodies/rpc.has_one_default_parameter"
+(1 row)
+
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/has_all_default_parameters'->'post'->'requestBody'->'$ref');
+                        jsonb_pretty                         
+-------------------------------------------------------------
+ "#/components/requestBodies/rpc.has_all_default_parameters"
+(1 row)
+
+-- does not use a reference for the request body when the function has no parameters
+select get_openapi_document('{test}')->'paths'->'/rpc/has_no_parameters'->'post' ? 'requestBody' as value;
+ value 
+-------
+ f
+(1 row)
+
+-- shows the first line of the comment on the function as summary
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'summary');
+          jsonb_pretty          
+--------------------------------
+ "Get Products By Size summary"
+(1 row)
+
+-- shows the second line of the comment on the function as description
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'description');
+                          jsonb_pretty                           
+-----------------------------------------------------------------
+ "Get Products By Size description\nthat spans\nmultiple lines."
+(1 row)
+
+-- uses references for columns as query parameters on `RETURNS <table>` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.products.%'
+order by value->>'$ref';
+                               value                                
+--------------------------------------------------------------------
+ {"$ref": "#/components/parameters/rowFilter.products.attr"}
+ {"$ref": "#/components/parameters/rowFilter.products.code"}
+ {"$ref": "#/components/parameters/rowFilter.products.description"}
+ {"$ref": "#/components/parameters/rowFilter.products.id"}
+ {"$ref": "#/components/parameters/rowFilter.products.name"}
+ {"$ref": "#/components/parameters/rowFilter.products.size"}
+(6 rows)
+
+-- uses references for composite type columns as query parameters on `RETURNS <composite type>` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/get_attribute'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.types.attribute_ret.%'
+order by value->>'$ref';
+                                  value                                   
+--------------------------------------------------------------------------
+ {"$ref": "#/components/parameters/rowFilter.types.attribute_ret.colors"}
+ {"$ref": "#/components/parameters/rowFilter.types.attribute_ret.dim"}
+ {"$ref": "#/components/parameters/rowFilter.types.attribute_ret.other"}
+(3 rows)
+
+-- uses references for table arguments as query parameters on `RETURNS TABLE` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_table'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.rpc.returns_table.%'
+order by value->>'$ref';
+                                value                                 
+----------------------------------------------------------------------
+ {"$ref": "#/components/parameters/rowFilter.rpc.returns_table.comp"}
+ {"$ref": "#/components/parameters/rowFilter.rpc.returns_table.num"}
+ {"$ref": "#/components/parameters/rowFilter.rpc.returns_table.val"}
+(3 rows)
+
+-- uses references for inout/out arguments as query parameters on functions with INOUT/OUT parameters
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_inout_out'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.rpc.returns_inout_out.%'
+order by value->>'$ref';
+                                 value                                 
+-----------------------------------------------------------------------
+ {"$ref": "#/components/parameters/rowFilter.rpc.returns_inout_out.y"}
+ {"$ref": "#/components/parameters/rowFilter.rpc.returns_inout_out.z"}
+(2 rows)
+
+-- uses references for common parameters on `RETURNS <table>` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.products.%';
+                       value                       
+---------------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/order"}
+ {"$ref": "#/components/parameters/limit"}
+ {"$ref": "#/components/parameters/offset"}
+ {"$ref": "#/components/parameters/or"}
+ {"$ref": "#/components/parameters/and"}
+ {"$ref": "#/components/parameters/not.or"}
+ {"$ref": "#/components/parameters/not.and"}
+ {"$ref": "#/components/parameters/preferPostRpc"}
+(9 rows)
+
+-- uses references for common parameters on `RETURNS <composite type>` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/get_attribute'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.types.attribute_ret.%';
+                       value                       
+---------------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/order"}
+ {"$ref": "#/components/parameters/limit"}
+ {"$ref": "#/components/parameters/offset"}
+ {"$ref": "#/components/parameters/or"}
+ {"$ref": "#/components/parameters/and"}
+ {"$ref": "#/components/parameters/not.or"}
+ {"$ref": "#/components/parameters/not.and"}
+ {"$ref": "#/components/parameters/preferPostRpc"}
+(9 rows)
+
+-- uses references for common parameters on `RETURNS TABLE` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_table'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.rpc.returns_table.%';
+                       value                       
+---------------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/order"}
+ {"$ref": "#/components/parameters/limit"}
+ {"$ref": "#/components/parameters/offset"}
+ {"$ref": "#/components/parameters/or"}
+ {"$ref": "#/components/parameters/and"}
+ {"$ref": "#/components/parameters/not.or"}
+ {"$ref": "#/components/parameters/not.and"}
+ {"$ref": "#/components/parameters/preferPostRpc"}
+(9 rows)
+
+-- uses references for common parameters on functions with INOUT/OUT parameters
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_inout_out'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.rpc.returns_inout_out.%';
+                       value                       
+---------------------------------------------------
+ {"$ref": "#/components/parameters/select"}
+ {"$ref": "#/components/parameters/order"}
+ {"$ref": "#/components/parameters/limit"}
+ {"$ref": "#/components/parameters/offset"}
+ {"$ref": "#/components/parameters/or"}
+ {"$ref": "#/components/parameters/and"}
+ {"$ref": "#/components/parameters/not.or"}
+ {"$ref": "#/components/parameters/not.and"}
+ {"$ref": "#/components/parameters/preferPostRpc"}
+(9 rows)
+
+-- does not use a reference for the 206 HTTP code response on functions that do not return `SET OF`
+select get_openapi_document('{test}')->'paths'->'/rpc/get_attribute'->'post'->'responses' ? '206' as value;
+ value 
+-------
+ f
+(1 row)
+
+-- does not use a reference for common parameters (except for prefer headers) on functions that do not return composite types
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_simple_type'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rpcParam.returns_simple_type.%';
+                       value                       
+---------------------------------------------------
+ {"$ref": "#/components/parameters/preferPostRpc"}
+(1 row)
+
+-- shows a function with a single unnamed parameter of accepted types
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_json_param'->'post'->'tags');
+             jsonb_pretty              
+---------------------------------------
+ [                                    +
+     "(rpc) single_unnamed_json_param"+
+ ]
+(1 row)
+
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_jsonb_param'->'post'->'tags');
+              jsonb_pretty              
+----------------------------------------
+ [                                     +
+     "(rpc) single_unnamed_jsonb_param"+
+ ]
+(1 row)
+
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_text_param'->'post'->'tags');
+             jsonb_pretty              
+---------------------------------------
+ [                                    +
+     "(rpc) single_unnamed_text_param"+
+ ]
+(1 row)
+
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_xml_param'->'post'->'tags');
+             jsonb_pretty             
+--------------------------------------
+ [                                   +
+     "(rpc) single_unnamed_xml_param"+
+ ]
+(1 row)
+
+-- does not show a function with a single unnamed parameter of non-accepted types
+select get_openapi_document('{test}')->'paths' ? '/rpc/single_unnamed_unrecognized_param' as value;
+ value 
+-------
+ f
+(1 row)
+
+-- does not show a function with unnamed parameters
+select get_openapi_document('{test}')->'paths' ? '/rpc/unnamed_params' as value;
+ value 
+-------
+ f
+(1 row)
+
+-- does not show a function with named and unnamed parameters
+select get_openapi_document('{test}')->'paths' ? '/rpc/named_and_unnamed_params' as value;
+ value 
+-------
+ f
+(1 row)
+

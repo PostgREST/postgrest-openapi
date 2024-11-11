@@ -367,6 +367,86 @@ where key like 'rowFilter.big_products.%';
                              | }
 (4 rows)
 
+-- shows composite type columns as parameters on `RETURNS <composite type>` functions
+select key, jsonb_pretty(value)
+from jsonb_each(get_openapi_document('{test}')->'components'->'parameters')
+where key like 'rowFilter.types.attribute_ret.%';
+                 key                  |       jsonb_pretty       
+--------------------------------------+--------------------------
+ rowFilter.types.attribute_ret.dim    | {                       +
+                                      |     "in": "query",      +
+                                      |     "name": "dim",      +
+                                      |     "schema": {         +
+                                      |         "type": "string"+
+                                      |     }                   +
+                                      | }
+ rowFilter.types.attribute_ret.other  | {                       +
+                                      |     "in": "query",      +
+                                      |     "name": "other",    +
+                                      |     "schema": {         +
+                                      |         "type": "string"+
+                                      |     }                   +
+                                      | }
+ rowFilter.types.attribute_ret.colors | {                       +
+                                      |     "in": "query",      +
+                                      |     "name": "colors",   +
+                                      |     "schema": {         +
+                                      |         "type": "string"+
+                                      |     }                   +
+                                      | }
+(3 rows)
+
+-- shows table arguments as parameters on `RETURNS TABLE` functions
+select key, jsonb_pretty(value)
+from jsonb_each(get_openapi_document('{test}')->'components'->'parameters')
+where key like 'rowFilter.rpc.returns_table.%';
+               key                |       jsonb_pretty       
+----------------------------------+--------------------------
+ rowFilter.rpc.returns_table.num  | {                       +
+                                  |     "in": "query",      +
+                                  |     "name": "num",      +
+                                  |     "schema": {         +
+                                  |         "type": "string"+
+                                  |     }                   +
+                                  | }
+ rowFilter.rpc.returns_table.val  | {                       +
+                                  |     "in": "query",      +
+                                  |     "name": "val",      +
+                                  |     "schema": {         +
+                                  |         "type": "string"+
+                                  |     }                   +
+                                  | }
+ rowFilter.rpc.returns_table.comp | {                       +
+                                  |     "in": "query",      +
+                                  |     "name": "comp",     +
+                                  |     "schema": {         +
+                                  |         "type": "string"+
+                                  |     }                   +
+                                  | }
+(3 rows)
+
+-- shows inout/out arguments as parameters on functions with INOUT/OUT parameters
+select key, jsonb_pretty(value)
+from jsonb_each(get_openapi_document('{test}')->'components'->'parameters')
+where key like 'rowFilter.rpc.returns_inout_out.%';
+                key                |       jsonb_pretty       
+-----------------------------------+--------------------------
+ rowFilter.rpc.returns_inout_out.y | {                       +
+                                   |     "in": "query",      +
+                                   |     "name": "y",        +
+                                   |     "schema": {         +
+                                   |         "type": "string"+
+                                   |     }                   +
+                                   | }
+ rowFilter.rpc.returns_inout_out.z | {                       +
+                                   |     "in": "query",      +
+                                   |     "name": "z",        +
+                                   |     "schema": {         +
+                                   |         "type": "string"+
+                                   |     }                   +
+                                   | }
+(2 rows)
+
 -- shows `IN` function arguments as RPC parameters
 select key, jsonb_pretty(value)
 from jsonb_each(get_openapi_document('{test}')->'components'->'parameters')

@@ -7,19 +7,19 @@ SQL functions to build the OpenAPI output of a PostgREST instance.
 - The first step in the roadmap is to migrate the OpenAPI spec from the PostgREST core repository (version 2.0 to 3.1):
   - [x] Info object
   - [x] Server object (replaces host, basePath and schemes from OAS 2.0)
-  - [ ] Components object
+  - [x] Components object
     - [x] Schemas (definitions in OAS 2.0)
     - [x] Security scheme (security definitions in OAS 2.0)
-    - [ ] Parameters
-  - [ ] Paths object
+    - [x] Parameters
+  - [x] Paths object
     - [x] Tables and Views
       - [x] GET
       - [x] POST
       - [x] PATCH
       - [x] DELETE
-    - [ ] Functions
-      - [ ] GET
-      - [ ] POST
+    - [x] Functions
+      - [x] GET
+      - [x] POST
   - [ ] External Documentation Object
   - [ ] Handle relevant OpenAPI elements according to user permissions
 - The next step is to fix the issues tagged with `OpenAPI` in the core repo.

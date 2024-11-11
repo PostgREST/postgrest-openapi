@@ -105,6 +105,31 @@ create view test.non_auto_updatable as
 
 -- Functions for testing
 
+create function test.openapi_types(
+  "a_character_varying" character varying,
+  "a_character" character(1),
+  "a_text" text,
+  "a_boolean" boolean,
+  "a_smallint" smallint,
+  "a_integer" integer,
+  "a_bigint" bigint,
+  "a_numeric" numeric,
+  "a_real" real,
+  "a_double_precision" double precision,
+  "a_json" json,
+  "a_jsonb" jsonb,
+  "a_text_arr" text[],
+  "a_int_arr" int[],
+  "a_bool_arr" boolean[],
+  "a_char_arr" char[],
+  "a_varchar_arr" varchar[],
+  "a_bigint_arr" bigint[],
+  "a_numeric_arr" numeric[],
+  "a_json_arr" json[],
+  "a_jsonb_arr" jsonb[]
+)
+returns int language sql as 'select 1';
+
 create function test.get_products_by_size(s types.size)
 returns setof test.products stable language sql as
 $$
@@ -224,10 +249,15 @@ $$
 select ($1, $2);
 $$;
 
+create function test.has_all_default_parameters(a int default 1, b int default 2) returns void stable language sql as 'select $1 + $2';
+create function test.has_one_default_parameter(a int, b int default 2) returns void stable language sql as 'select $1 + $2';
+create function test.has_no_parameters() returns void stable language sql as '';
+
 create function test.single_unnamed_json_param(json) returns json stable language sql as 'select $1';
 create function test.single_unnamed_jsonb_param(jsonb) returns jsonb stable language sql as 'select $1';
 create function test.single_unnamed_text_param(text) returns text stable language sql as 'select $1';
 create function test.single_unnamed_xml_param(xml) returns xml stable language sql as 'select $1';
+create function test.single_unnamed_bytea_param(bytea) returns bytea stable language sql as 'select $1';
 
 create function test.single_unnamed_unrecognized_param(int) returns int stable language sql as 'select $1';
 create function test.unnamed_params(int, numeric) returns numeric stable language sql as 'select $2 + $1';
