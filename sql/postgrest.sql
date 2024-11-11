@@ -166,6 +166,7 @@ $$;
 create or replace function postgrest_get_all_functions(schemas text[])
 returns table (
   argument_input_qty int,
+  argument_default_qty int,
   argument_name text,
   argument_reg_type oid,
   argument_type_name text,
@@ -185,6 +186,7 @@ returns table (
   function_name name,
   function_full_name text,
   function_description text,
+  function_input_argument_types oidvector,
   return_type_name text,
   return_type_item_name text,
   return_type_is_set bool,
@@ -225,6 +227,7 @@ $$
   all_functions AS (
     SELECT
       p.pronargs AS argument_input_qty,
+      p.pronargdefaults AS argument_default_qty,
       COALESCE(pa.name, '') AS argument_name,
       pa.type AS argument_reg_type,
       format_type(ta.oid, NULL::integer) AS argument_type_name,
@@ -247,6 +250,7 @@ $$
       -- The "full name" of the function `<schema>.<name>`. We omit `<schema>.` when it belongs to the `current_schema`
       COALESCE(NULLIF(pn.nspname, current_schema) || '.', '') || p.proname AS function_full_name,
       d.description AS function_description,
+      p.proargtypes AS function_input_argument_types,
       format_type(t.oid, NULL::integer) AS return_type_name,
       format_type(t_arr.oid, NULL::integer) AS return_type_item_name,
       p.proretset AS return_type_is_set,
@@ -290,7 +294,7 @@ $$
     WHERE x.argument_input_qty > 0
       AND x.argument_name = ''
       AND (x.argument_is_in OR x.argument_is_inout OR x.argument_is_variadic)
-      AND NOT (x.argument_input_qty = 1 AND x.argument_reg_type IN ('bytea'::regtype, 'json'::regtype, 'jsonb'::regtype, 'text'::regtype, 'xml'::regtype))
+      AND NOT (x.argument_input_qty = 1 AND x.function_input_argument_types[0] IN ('bytea'::regtype, 'json'::regtype, 'jsonb'::regtype, 'text'::regtype, 'xml'::regtype))
       AND x.function_oid = a.function_oid
   );
 $$;

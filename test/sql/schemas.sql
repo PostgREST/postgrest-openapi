@@ -143,6 +143,37 @@ select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rp
 -- ignores a function outside of the exposed schemas
 select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.private.secret_function');
 
+-- Function parameters (referenced by POST request bodies)
+
+-- maps sql types to OpenAPI types correctly
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.args.openapi_types');
+
+-- detects functions with composite types parameters
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.args.get_attribute');
+
+-- detects functions with IN parameters
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.args.has_in_parameters');
+
+-- detects functions with INOUT parameters
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.args.has_inout_parameters');
+
+-- detects functions with VARIADIC parameters
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.args.has_variadic_parameter');
+
+-- detects functions with default parameters
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.args.has_all_default_parameters');
+select jsonb_pretty(get_openapi_document('{test}')->'components'->'schemas'->'rpc.args.has_one_default_parameter');
+
+-- ignores functions without parameters
+select get_openapi_document('{test}')->'components'->'schemas' ? 'rpc.args.has_no_parameters' as value;
+
+-- ignores functions with single unnamed parameters
+select get_openapi_document('{test}')->'components'->'schemas' ? 'rpc.args.single_unnamed_json_param' as value;
+select get_openapi_document('{test}')->'components'->'schemas' ? 'rpc.args.single_unnamed_jsonb_param' as value;
+select get_openapi_document('{test}')->'components'->'schemas' ? 'rpc.args.single_unnamed_text_param' as value;
+select get_openapi_document('{test}')->'components'->'schemas' ? 'rpc.args.single_unnamed_xml_param' as value;
+select get_openapi_document('{test}')->'components'->'schemas' ? 'rpc.args.single_unnamed_bytea_param' as value;
+
 -- Common
 
 -- defines all the available prefer headers

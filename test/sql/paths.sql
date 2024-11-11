@@ -309,3 +309,104 @@ select get_openapi_document('{test}')->'paths' ? '/rpc/unnamed_params' as value;
 
 -- does not show a function with named and unnamed parameters
 select get_openapi_document('{test}')->'paths' ? '/rpc/named_and_unnamed_params' as value;
+
+-- POST operation object
+
+-- shows the function name as tag
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'tags');
+
+-- uses a reference for the 200 HTTP code response
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'responses'->'200');
+
+-- uses a reference for the 206 HTTP code response on `RETURNS SET OF` functions
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'responses'->'206');
+
+-- uses a reference for error responses
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'responses'->'default');
+
+-- uses a reference for request body when the function has a single unnamed parameter (json, jsonb, text, xml, bytea)
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_json_param'->'post'->'requestBody'->'$ref');
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_jsonb_param'->'post'->'requestBody'->'$ref');
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_text_param'->'post'->'requestBody'->'$ref');
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_xml_param'->'post'->'requestBody'->'$ref');
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_bytea_param'->'post'->'requestBody'->'$ref');
+
+-- uses a reference for the request body when the function has at least one no-default parameter
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/has_one_default_parameter'->'post'->'requestBody'->'$ref');
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/has_all_default_parameters'->'post'->'requestBody'->'$ref');
+
+-- does not use a reference for the request body when the function has no parameters
+select get_openapi_document('{test}')->'paths'->'/rpc/has_no_parameters'->'post' ? 'requestBody' as value;
+
+-- shows the first line of the comment on the function as summary
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'summary');
+
+-- shows the second line of the comment on the function as description
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'description');
+
+-- uses references for columns as query parameters on `RETURNS <table>` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.products.%'
+order by value->>'$ref';
+
+-- uses references for composite type columns as query parameters on `RETURNS <composite type>` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/get_attribute'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.types.attribute_ret.%'
+order by value->>'$ref';
+
+-- uses references for table arguments as query parameters on `RETURNS TABLE` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_table'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.rpc.returns_table.%'
+order by value->>'$ref';
+
+-- uses references for inout/out arguments as query parameters on functions with INOUT/OUT parameters
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_inout_out'->'post'->'parameters')
+where value->>'$ref' like '#/components/parameters/rowFilter.rpc.returns_inout_out.%'
+order by value->>'$ref';
+
+-- uses references for common parameters on `RETURNS <table>` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/get_products_by_size'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.products.%';
+
+-- uses references for common parameters on `RETURNS <composite type>` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/get_attribute'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.types.attribute_ret.%';
+
+-- uses references for common parameters on `RETURNS TABLE` functions
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_table'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.rpc.returns_table.%';
+
+-- uses references for common parameters on functions with INOUT/OUT parameters
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_inout_out'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rowFilter.rpc.returns_inout_out.%';
+
+-- does not use a reference for the 206 HTTP code response on functions that do not return `SET OF`
+select get_openapi_document('{test}')->'paths'->'/rpc/get_attribute'->'post'->'responses' ? '206' as value;
+
+-- does not use a reference for common parameters (except for prefer headers) on functions that do not return composite types
+select value
+from jsonb_array_elements(get_openapi_document('{test}')->'paths'->'/rpc/returns_simple_type'->'post'->'parameters')
+where value->>'$ref' not like '#/components/parameters/rpcParam.returns_simple_type.%';
+
+-- shows a function with a single unnamed parameter of accepted types
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_json_param'->'post'->'tags');
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_jsonb_param'->'post'->'tags');
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_text_param'->'post'->'tags');
+select jsonb_pretty(get_openapi_document('{test}')->'paths'->'/rpc/single_unnamed_xml_param'->'post'->'tags');
+
+-- does not show a function with a single unnamed parameter of non-accepted types
+select get_openapi_document('{test}')->'paths' ? '/rpc/single_unnamed_unrecognized_param' as value;
+
+-- does not show a function with unnamed parameters
+select get_openapi_document('{test}')->'paths' ? '/rpc/unnamed_params' as value;
+
+-- does not show a function with named and unnamed parameters
+select get_openapi_document('{test}')->'paths' ? '/rpc/named_and_unnamed_params' as value;
